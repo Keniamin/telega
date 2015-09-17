@@ -1,19 +1,16 @@
-#!/usr/bin/env python
 from random import randint
 from datetime import datetime, timedelta
 
 import pytz
-import pymysql
 
-import telega.common as telega
 import telega.schedule as schedule
 import telega.classifier as classifier
+from telega.common import DbManager, config
 
-config = telega.config
 db = TaskDbManager()
 
 
-class TaskDbManager(telega.DbManager):
+class TaskDbManager(DbManager):
     def remove_old_tasks(self):
         with self.db.cursor() as cursor:
             cursor.execute("""
@@ -28,7 +25,7 @@ class TaskDbManager(telega.DbManager):
                     FROM Tasks
                     ORDER BY time ASC
                     LIMIT 1
-                """, type)
+                """)
             result = cursor.fetchone()
         result['processor'] = globals().get(result['processor'])
         return result
@@ -48,6 +45,23 @@ class TaskDbManager(telega.DbManager):
             'time': time.isoformat(),
             'target_id': target,
         })
+
+    def add_end_time(self, begin, channel):
+        with self.db.cursor() as cursor:
+            cursor.execute("""
+                    UPDATE Events
+                    SET end = %s
+                    WHERE channel_id = %s
+                      AND begin <= %s
+                      AND (end > %s OR end = NULL)
+                """, (begin, channel, begin, begin))
+            cursor.execute("""
+                    SELECT MIN(time) AS time
+                    FROM Events
+                    WHERE channel_id = %s
+                      AND begin > %s
+                """, (channel, begin))
+            return cursor.fetchone()['time']
 
 
 class Task(object):
@@ -86,12 +100,11 @@ class GetEventInfoTask(Task):
     target_table = 'Events'
 
     @classmethod
-    def run_task(cls, target):
-        info = schedule.get_info(target['link'])
-        info['event_id'] = target['id']
+    def run_task(cls, event):
+        info = schedule.get_info(event['link'])
+        info['event_id'] = event['id']
         info['id'] = db.insert('EventInfo', info)
-        if target['type'] is None:
-            classifier.check_heuristics(info)
+        classifier.check_heuristics(info)
 
 
 class GetEventsTask(Task):
@@ -99,15 +112,15 @@ class GetEventsTask(Task):
     target_table = 'Channels'
 
     @classmethod
-    def run_task(cls, target):
+    def run_task(cls, channel):
         for_date = datetime.now().date()
-        if target['known_until'] >= for_date:
+        if channel['known_until'] >= for_date:
             for_date += timedelta(days=1)
-            if target['known_until'] >= for_date:
+            if channel['known_until'] >= for_date:
                 return
-        for event in schedule.get_events(target['link'], for_date):
-            ### set datetime of event
-            ### update existing events end time
+        for event in schedule.get_events(channel['link'], for_date):
+            event['channel_id'] = channel['id']
+            event['end'] = db.add_end_time(event['begin'], channel['id']) or
             event['id'] = db.insert('Events', event)
             classifier.check_filters(event)
             GetEventInfoTask.add_task(event['id'])
@@ -118,12 +131,10 @@ class GetScheduleTask(Task):
     def run_task(cls, target):
         for ch in db.select_all('Channels'):
             GetEventsTask.add_task(ch['id'])
-
         now = datetime.now(tz=pytz.timezone("Europe/Moscow"))
         local_next_midnight = (now + timedelta(days=1)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
-
         GetScheduleTask.add_task(
             later_than=local_next_midnight.astimezone(pytz.utc)
         )

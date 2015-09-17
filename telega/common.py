@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-import os
 import yaml
 
 import pymysql
@@ -44,7 +42,10 @@ class DbManager(object):
                     SELECT *
                     FROM %s
                 """, table)
-            return cursor.fetchall()
+            row = cursor.fetchone()
+            while row is not None:
+                yield row
+                row = cursor.fetchone()
 
     def remove(self, table, id):
         with self.db.cursor() as cursor:

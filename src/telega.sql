@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS Heuristics (
 CREATE TABLE IF NOT EXISTS Events (
     id INT NOT NULL AUTO_INCREMENT,
     begin TIMESTAMP NOT NULL,
-    end TIMESTAMP NOT NULL,
+    end TIMESTAMP,
     title TINYTEXT NOT NULL,
     link TINYTEXT NOT NULL,
     channel_id INT NOT NULL,
-    type ENUM('filter', 'heuristic') DEFAULT NULL,
+    state ENUM('filter', 'heuristic') DEFAULT NULL,
     filter_id INT DEFAULT NULL,
     heuristic_id INT DEFAULT NULL,
     FOREIGN KEY (channel_id) REFERENCES Channels(id)
