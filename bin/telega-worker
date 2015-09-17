@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+from time import sleep
+from datetime import datetime, timedelta
+
+import telega.tasks as tasks
+
+config = tasks.config
+db = tasks.db
+
+
+def processed(task):
+    db.remove('Tasks', task['id'])
+
+
+def main():
+    while True:
+        db.remove_old_tasks()
+
+        task = db.get_next_task()
+        if task['processor'] is None:
+            processed(task)
+            continue
+
+        may_sleep = task['time'] - datetime.utcnow()
+        if may_sleep.total_seconds() > 1:
+            time.sleep(int(may_sleep))
+            continue
+
+        target = task['processor'].prepare_target(task['target'])
+        if target is None:
+            processed(task)
+        elif task['processor'].run_task(target):
+            processed(task)
+
+if __name__ == "__main__":
+    main()
