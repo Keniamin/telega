@@ -1,8 +1,10 @@
 # -*- coding: utf8 -*-
 import yaml
+import logging
 
 import pymysql
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(funcName)15s] %(levelname)s:\t%(message)s')
 config = yaml.load(open('/etc/telega.conf', 'r').read())
 
 
@@ -14,6 +16,7 @@ class DbManager(object):
             user=db_conf['user'],
             password=db_conf['password'],
             cursorclass=pymysql.cursors.DictCursor,
+            charset='utf8',
         )
         self.db.autocommit(True)
 
@@ -32,17 +35,17 @@ class DbManager(object):
         with self.db.cursor() as cursor:
             cursor.execute("""
                     SELECT *
-                    FROM """ + table + """
+                    FROM {}
                     WHERE id = %s
-                """, id)
+                """.format(table), id)
             return cursor.fetchone()
 
     def select_all(self, table):
         with self.db.cursor() as cursor:
             cursor.execute("""
                     SELECT *
-                    FROM %s
-                """, table)
+                    FROM """ + table
+            )
             row = cursor.fetchone()
             while row is not None:
                 yield row
@@ -51,6 +54,6 @@ class DbManager(object):
     def remove(self, table, id):
         with self.db.cursor() as cursor:
             cursor.execute("""
-                    DELETE FROM %s
+                    DELETE FROM {}
                     WHERE id = %s
-                """, (table, id))
+                """.format(table), id)

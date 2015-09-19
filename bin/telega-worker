@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+import logging
 from time import sleep
 from datetime import datetime, timedelta
 
 import telega.tasks as tasks
 
 ERROR_SLEEP = 10
-MAX_ERROR_SLEEP = 300
+MAX_ERROR_SLEEP = 120
+MAX_TASK_SLEEP = 60
 
 config = tasks.config
 db = tasks.db
@@ -19,26 +21,46 @@ def main():
     time_to_sleep = 0
     while True:
         try:
+            if time_to_sleep > 0:
+               time_to_sleep -= ERROR_SLEEP
             db.remove_old_tasks()
 
             task = db.get_next_task()
+            if task is None:
+                logging.warning('No tasks in queue, sleeping %s seconds', MAX_TASK_SLEEP)
+                sleep(MAX_TASK_SLEEP)
+                continue
             if task['processor'] is None:
+                logging.warning('Task with empty processor found')
                 processed(task)
                 continue
 
             may_sleep = task['time'] - datetime.utcnow()
             if may_sleep.total_seconds() > 1:
-                sleep(int(may_sleep))
+                may_sleep = min(int(may_sleep.total_seconds()), MAX_TASK_SLEEP)
+                logging.info('Sleeping %s seconds until next task', may_sleep)
+                sleep(may_sleep)
                 continue
 
-            target = task['processor'].prepare_target(task['target'])
+            target = task['processor'].prepare_target(task['target_id'])
             if target is None:
+                logging.info(
+                    'Skipping task %s: no target %s found',
+                    task['processor'].__name__, task['target_id'],
+                )
                 processed(task)
-            elif task['processor'].run_task(target):
-                processed(task)
+                continue
+
+            logging.info(
+                'Executing task %s at %s',
+                task['processor'].__name__, task['target_id']
+            )
+            task['processor'].run_task(target)
+            processed(task)
         except Exception as exc:
+            logging.warning(exc)
             if time_to_sleep < MAX_ERROR_SLEEP:
-               time_to_sleep += ERROR_SLEEP
+               time_to_sleep += 2*ERROR_SLEEP
             sleep(time_to_sleep)
 
 if __name__ == "__main__":

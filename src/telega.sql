@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS Channels (
 
 CREATE TABLE IF NOT EXISTS Filters (
     id INT NOT NULL AUTO_INCREMENT,
-    title TINYTEXT NOT NULL,
+    title TEXT NOT NULL,
     deleting ENUM('+') DEFAULT NULL,
     PRIMARY KEY (id)
 );
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS Heuristics (
 
 CREATE TABLE IF NOT EXISTS Events (
     id INT NOT NULL AUTO_INCREMENT,
-    begin TIMESTAMP NOT NULL,
-    end TIMESTAMP,
-    title TINYTEXT NOT NULL,
+    begin DATETIME NOT NULL,
+    end DATETIME,
+    title TEXT NOT NULL,
     link TINYTEXT NOT NULL,
     channel_id INT NOT NULL,
     state ENUM('filter', 'heuristic') DEFAULT NULL,

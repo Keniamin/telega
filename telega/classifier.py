@@ -1,4 +1,6 @@
 # -*- coding: utf8 -*-
+import logging
+
 from telega.common import DbManager
 
 db = DbManager()

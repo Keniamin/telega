@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
-from random import randint
+import logging
+from random import randint, shuffle
 from datetime import datetime, timedelta
 
 import pytz
@@ -7,8 +8,6 @@ import pytz
 import telega.schedule as schedule
 import telega.classifier as classifier
 from telega.common import DbManager, config
-
-db = TaskDbManager()
 
 
 class TaskDbManager(DbManager):
@@ -28,6 +27,8 @@ class TaskDbManager(DbManager):
                     LIMIT 1
                 """)
             result = cursor.fetchone()
+        if result is None:
+            return None
         result['processor'] = globals().get(result['processor'])
         return result
 
@@ -42,8 +43,8 @@ class TaskDbManager(DbManager):
 
     def add_task(self, type, time, target):
         self.insert('Tasks', {
+            'time': time,
             'processor': type,
-            'time': time.isoformat(),
             'target_id': target,
         })
 
@@ -54,10 +55,10 @@ class TaskDbManager(DbManager):
                     SET end = %s
                     WHERE channel_id = %s
                       AND begin <= %s
-                      AND (end > %s OR end = NULL)
+                      AND (end > %s OR end IS NULL)
                 """, (begin, channel, begin, begin))
             cursor.execute("""
-                    SELECT MIN(time) AS time
+                    SELECT MIN(begin) AS time
                     FROM Events
                     WHERE channel_id = %s
                       AND begin > %s
@@ -69,7 +70,7 @@ class TaskDbManager(DbManager):
             cursor.execute("""
                     UPDATE Channels
                     SET known_until = %s
-                    WHERE channel_id = %s
+                    WHERE id = %s
                 """, (date, channel))
 
 
@@ -84,11 +85,12 @@ class Task(object):
             last_task_time += timedelta(
                 seconds=randint(cls.delay[0], cls.delay[1])
             )
-        new_task_time = max(
-            later_than.replace(tzinfo=None),
+        constraints = [
+            later_than,
             last_task_time,
             datetime.utcnow(),
-        )
+        ]
+        new_task_time = max(time for time in constraints if time)
         db.add_task(cls.__name__, new_task_time, target)
 
     @classmethod
@@ -123,20 +125,24 @@ class GetEventsTask(Task):
     @classmethod
     def run_task(cls, channel):
         for_date = datetime.now().date()
-        if channel['known_until'] >= for_date:
+        if channel['known_until'] and channel['known_until'] >= for_date:
             for_date += timedelta(days=1)
             if channel['known_until'] >= for_date:
                 return
+        event_ids = []
         for event in schedule.get_events(channel['link'], for_date):
             event['channel_id'] = channel['id']
-            event['end'] = db.add_end_time(event['begin'], channel['id']) or
+            event['end'] = db.add_end_time(event['begin'], channel['id'])
             event['id'] = db.insert('Events', event)
             classifier.check_filters(event)
-            GetEventInfoTask.add_task(event['id'])
+            event_ids.append(event['id'])
         db.update_channel_date(channel['id'], for_date)
+        shuffle(event_ids)
+        for id in event_ids:
+            GetEventInfoTask.add_task(id)
 
 
-class GetScheduleTask(Task):
+class ScheduleGettersTask(Task):
     @classmethod
     def run_task(cls, target):
         for ch in db.select_all('Channels'):
@@ -145,6 +151,8 @@ class GetScheduleTask(Task):
         local_next_midnight = (now + timedelta(days=1)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
-        GetScheduleTask.add_task(
-            later_than=local_next_midnight.astimezone(pytz.utc)
+        ScheduleGettersTask.add_task(
+            later_than=local_next_midnight.astimezone(pytz.utc).replace(tzinfo=None)
         )
+
+db = TaskDbManager()

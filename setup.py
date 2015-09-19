@@ -20,7 +20,7 @@ setup(
     scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
         ('/etc/init', ['etc/init/telega-worker.conf']),
-        ('/etc', ['etc/telega.service.conf']),
+        ('/etc', ['etc/telega.conf']),
         add_to_lib('templates'),
         add_to_lib('static'),
     ],
