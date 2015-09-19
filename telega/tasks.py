@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 from random import randint
 from datetime import datetime, timedelta
 
@@ -63,6 +64,14 @@ class TaskDbManager(DbManager):
                 """, (channel, begin))
             return cursor.fetchone()['time']
 
+    def update_channel_date(self, channel, date):
+        with self.db.cursor() as cursor:
+            cursor.execute("""
+                    UPDATE Channels
+                    SET known_until = %s
+                    WHERE channel_id = %s
+                """, (date, channel))
+
 
 class Task(object):
     delay = (0, 0)
@@ -101,7 +110,7 @@ class GetEventInfoTask(Task):
 
     @classmethod
     def run_task(cls, event):
-        info = schedule.get_info(event['link'])
+        info = schedule.get_event_info(event['link'])
         info['event_id'] = event['id']
         info['id'] = db.insert('EventInfo', info)
         classifier.check_heuristics(info)
@@ -124,6 +133,7 @@ class GetEventsTask(Task):
             event['id'] = db.insert('Events', event)
             classifier.check_filters(event)
             GetEventInfoTask.add_task(event['id'])
+        db.update_channel_date(channel['id'], for_date)
 
 
 class GetScheduleTask(Task):

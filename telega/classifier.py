@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 from telega.common import DbManager
 
 db = DbManager()

@@ -17,9 +17,10 @@ setup(
     author_email='inngoncharov@yandex.ru',
 
     packages=['telega'],
-    scripts=['bin/telega-web', 'bin/telega-worker'],
+    scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
-        ('/etc', ['etc/telega.conf']),
+        ('/etc/init', ['etc/init/telega-worker.conf']),
+        ('/etc', ['etc/telega.service.conf']),
         add_to_lib('templates'),
         add_to_lib('static'),
     ],
