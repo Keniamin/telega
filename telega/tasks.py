@@ -115,7 +115,7 @@ class GetEventInfoTask(Task):
         info = schedule.get_event_info(event['link'])
         info['event_id'] = event['id']
         info['id'] = db.insert('EventInfo', info)
-        classifier.check_heuristics(info)
+        classifier.check_heuristics(info, event)
 
 
 class GetEventsTask(Task):

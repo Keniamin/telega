@@ -40,12 +40,14 @@ class DbManager(object):
                 """.format(table), id)
             return cursor.fetchone()
 
-    def select_all(self, table):
+    def select_all(self, table, where=None):
         with self.db.cursor() as cursor:
-            cursor.execute("""
-                    SELECT *
-                    FROM """ + table
-            )
+            request = """
+                SELECT *
+                FROM """ + table;
+            if where:
+                request += ' WHERE ' + where
+            cursor.execute(request)
             row = cursor.fetchone()
             while row is not None:
                 yield row
