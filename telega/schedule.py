@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 def _make_field_re(field):
     return re.compile(ur'<p>.*?{}:(.*?)</p>'.format(field))
 
-re_prg_item = re.compile(ur'prg_item_time[^>]*>([^<]+)</span>\s*<a [^>]*href="#([^"]+)"[^>]*>(.+?)</a>')
+re_prg_item = re.compile(ur'prg_item_time[^>]*>([^<]+)</span>\s*<a\s[^>]*href="#([^"]+)"[^>]*>(.+?)</a>')
 re_event_type = re.compile(ur'<p class="type">(.*?)</p>')
 re_field_country = _make_field_re(u'Страна')
 re_field_genre = _make_field_re(u'Жанр')
@@ -15,6 +15,7 @@ re_field_year = _make_field_re(u'Год')
 
 
 def _make_request(url):
+    response = None
     try:
         request = Request(url, headers={
             'Accept': 'text/html, application/xhtml+xml',
@@ -22,18 +23,18 @@ def _make_request(url):
         })
         response = urlopen(request)
         assert response.getcode() >= 200 and response.getcode() < 300
-    except Exception as e:
-        return None
+    except Exception as exc:
+        logging.warning('Can not load url %s: %s', url, exc)
     return response
 
 def _make_time(time_str, for_date, prev_hour):
-    hour, minute = time_str.split('.')
+    hour, minute = map(int, time_str.split('.'))
     if hour < prev_hour:
         for_date += timedelta(days=1)
     return (
         datetime(
             year=for_date.year, month=for_date.month, day=for_date.day,
-            hour=int(hour), minute=int(minute),
+            hour=hour, minute=minute,
         ),
         for_date, hour
     )
@@ -58,7 +59,8 @@ def get_events(channel_link, for_date):
 
     prev_hour = 0
     for event in re.finditer(re_prg_item, response.read().decode('utf8')):
-        time, for_date, prev_hour = _make_time(event.group(1), for_date, prev_hour)
+        time, for_date, prev_hour = \
+            _make_time(event.group(1), for_date, prev_hour)
         yield {
             'begin': time,
             'link': event.group(2),
@@ -66,7 +68,8 @@ def get_events(channel_link, for_date):
         }
 
 def get_event_info(event_link):
-    url = 'http://www.s-tv.ru/tv/ajaxinfo/{}/0/'.format(event_link.replace('ab', ''))
+    event_link = event_link.replace('ab', '')
+    url = 'http://www.s-tv.ru/tv/ajaxinfo/{}/0/'.format(event_link)
     response = _make_request(url)
     if response is None:
         return {}

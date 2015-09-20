@@ -27,7 +27,10 @@ def main():
 
             task = db.get_next_task()
             if task is None:
-                logging.warning('No tasks in queue, sleeping %s seconds', MAX_TASK_SLEEP)
+                logging.warning(
+                    'No tasks in queue, sleeping %s seconds',
+                    MAX_TASK_SLEEP
+                )
                 sleep(MAX_TASK_SLEEP)
                 continue
             if task['processor'] is None:
@@ -38,7 +41,7 @@ def main():
             may_sleep = task['time'] - datetime.utcnow()
             if may_sleep.total_seconds() > 1:
                 may_sleep = min(int(may_sleep.total_seconds()), MAX_TASK_SLEEP)
-                logging.info('Sleeping %s seconds until next task', may_sleep)
+                logging.info('Sleeping %s seconds waiting next task', may_sleep)
                 sleep(may_sleep)
                 continue
 
@@ -58,7 +61,7 @@ def main():
             task['processor'].run_task(target)
             processed(task)
         except Exception as exc:
-            logging.warning(exc)
+            logging.error('Uncaught exception: %s', exc)
             if time_to_sleep < MAX_ERROR_SLEEP:
                time_to_sleep += 2*ERROR_SLEEP
             sleep(time_to_sleep)

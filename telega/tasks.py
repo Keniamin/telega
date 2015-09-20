@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-import logging
 from random import randint, shuffle
 from datetime import datetime, timedelta
 
