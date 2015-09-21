@@ -118,7 +118,7 @@ class GetEventInfoTask(Task):
 
 
 class GetEventsTask(Task):
-    delay = (360, 600)
+    delay = (300, 500)
     target_table = 'Channels'
 
     @classmethod
@@ -127,6 +127,10 @@ class GetEventsTask(Task):
         if channel['known_until'] and channel['known_until'] >= for_date:
             for_date += timedelta(days=1)
             if channel['known_until'] >= for_date:
+                logging.info(
+                    'Channel %s already known until %s',
+                    channel['id'], channel['known_until']
+                )
                 return
         event_ids = []
         for event in schedule.get_events(channel['link'], for_date):
@@ -147,11 +151,11 @@ class ScheduleGettersTask(Task):
         for ch in db.select_all('Channels'):
             GetEventsTask.add_task(ch['id'])
         now = datetime.now(tz=pytz.timezone("Europe/Moscow"))
-        local_next_midnight = (now + timedelta(days=1)).replace(
-            hour=0, minute=0, second=0, microsecond=0
+        local_next_scheduler = (now + timedelta(days=1)).replace(
+            hour=11, minute=0, second=0, microsecond=0
         )
         ScheduleGettersTask.add_task(
-            later_than=local_next_midnight.astimezone(pytz.utc).replace(tzinfo=None)
+            later_than=local_next_scheduler.astimezone(pytz.utc).replace(tzinfo=None)
         )
 
 db = TaskDbManager()
