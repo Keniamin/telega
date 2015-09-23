@@ -17,6 +17,13 @@ class TaskDbManager(DbManager):
                     WHERE time < (UTC_TIMESTAMP() - INTERVAL %s HOUR)
                 """, config['task_expire_hours'])
 
+    def remove_old_events(self):
+        with self.db.cursor() as cursor:
+            cursor.execute("""
+                    DELETE FROM Events
+                    WHERE end < (NOW() - INTERVAL %s DAY)
+                """, config['keep_event_days'])
+
     def get_next_task(self):
         with self.db.cursor() as cursor:
             cursor.execute("""
@@ -145,17 +152,29 @@ class GetEventsTask(Task):
             GetEventInfoTask.add_task(id)
 
 
-class ScheduleGettersTask(Task):
+class DailyTask(Task):
+    @classmethod
+    def _next_task_time(cls, hour):
+        now = datetime.now(tz=pytz.timezone("Europe/Moscow"))
+        next_time = (now + timedelta(days=1)).replace(
+            hour=hour, minute=0, second=0, microsecond=0
+        )
+        return next_time.astimezone(pytz.utc).replace(tzinfo=None)
+
+
+class ScheduleGettersTask(DailyTask):
     @classmethod
     def run_task(cls, target):
         for ch in db.select_all('Channels'):
             GetEventsTask.add_task(ch['id'])
-        now = datetime.now(tz=pytz.timezone("Europe/Moscow"))
-        local_next_scheduler = (now + timedelta(days=1)).replace(
-            hour=11, minute=0, second=0, microsecond=0
-        )
-        ScheduleGettersTask.add_task(
-            later_than=local_next_scheduler.astimezone(pytz.utc).replace(tzinfo=None)
-        )
+        ScheduleGettersTask.add_task(later_than=cls._next_task_time(hour=11))
+
+
+class RemoveOldEventsTask(DailyTask):
+    @classmethod
+    def run_task(cls, target):
+        db.remove_old_events()
+        RemoveOldEventsTask.add_task(later_than=cls._next_task_time(hour=4))
+
 
 db = TaskDbManager()

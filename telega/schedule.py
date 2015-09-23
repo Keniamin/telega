@@ -4,6 +4,9 @@ import logging
 from urllib2 import urlopen, Request
 from datetime import datetime, timedelta
 
+from telega.common import InterruptTask
+
+
 def _make_field_re(field):
     return re.compile(ur'<p>.*?{}:(.*?)</p>'.format(field))
 
@@ -15,7 +18,6 @@ re_field_year = _make_field_re(u'Год')
 
 
 def _make_request(url):
-    response = None
     try:
         request = Request(url, headers={
             'Accept': 'text/html, application/xhtml+xml',
@@ -23,9 +25,11 @@ def _make_request(url):
         })
         response = urlopen(request)
         assert response.getcode() >= 200 and response.getcode() < 300
+        return response
     except Exception as exc:
         logging.warning('Can not load url %s: %s', url, exc)
-    return response
+        return None
+
 
 def _make_time(time_str, for_date, prev_hour):
     hour, minute = map(int, time_str.split('.'))
@@ -55,7 +59,7 @@ def get_events(channel_link, for_date):
     url = 'http://www.s-tv.ru/tv/{}/{}/'.format(channel_link, for_date)
     response = _make_request(url)
     if response is None:
-        return
+        raise InterruptTask
 
     prev_hour = 0
     for event in re.finditer(re_prg_item, response.read().decode('utf8')):
@@ -72,7 +76,7 @@ def get_event_info(event_link):
     url = 'http://www.s-tv.ru/tv/ajaxinfo/{}/0/'.format(event_link)
     response = _make_request(url)
     if response is None:
-        return {}
+        raise InterruptTask
 
     info = response.read().decode('utf8')
     return dict(

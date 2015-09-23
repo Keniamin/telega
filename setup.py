@@ -3,8 +3,8 @@ import os
 from distutils.core import setup
 
 def add_to_lib(dir):
-    path = '/var/lib/telega/{}'.format(dir)
-    files = ['{}/{}'.format(dir, file) for file in os.listdir(dir)]
+    path = os.path.join('/var/lib/telega', dir)
+    files = [os.path.join(dir, file) for file in os.listdir(dir) if not file.startswith('@')]
     return (path, files)
 
 
@@ -19,6 +19,7 @@ setup(
     packages=['telega'],
     scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
+        ('/etc/nginx/sites-enabled', ['etc/nginx/telega']),
         ('/etc/init', ['etc/init/telega-worker.conf']),
         ('/etc', ['etc/telega.conf']),
         add_to_lib('templates'),

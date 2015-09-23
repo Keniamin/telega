@@ -5,6 +5,7 @@ from time import sleep
 from datetime import datetime, timedelta
 
 import telega.tasks as tasks
+from telega.common import InterruptTask
 
 ERROR_SLEEP = 10
 MAX_ERROR_SLEEP = 120
@@ -41,7 +42,7 @@ def main():
             may_sleep = task['time'] - datetime.utcnow()
             if may_sleep.total_seconds() > 1:
                 may_sleep = min(int(may_sleep.total_seconds()), MAX_TASK_SLEEP)
-                logging.info('Sleeping %s seconds waiting next task', may_sleep)
+                logging.info('Sleeping %s seconds waiting for the next task', may_sleep)
                 sleep(may_sleep)
                 continue
 
@@ -61,7 +62,8 @@ def main():
             task['processor'].run_task(target)
             processed(task)
         except Exception as exc:
-            logging.error('Uncaught exception: %s', exc)
+            if not isinstance(exc, InterruptTask):
+                logging.error('Uncaught exception: %s', exc)
             if time_to_sleep < MAX_ERROR_SLEEP:
                time_to_sleep += 2*ERROR_SLEEP
             sleep(time_to_sleep)

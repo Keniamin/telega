@@ -8,6 +8,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(funcName)15s] %(l
 config = yaml.load(open('/etc/telega.conf', 'r').read())
 
 
+class InterruptTask(Exception): pass
+
+
 class DbManager(object):
     def __init__(self):
         db_conf = config.get('db', {})

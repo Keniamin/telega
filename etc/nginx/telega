@@ -1,0 +1,15 @@
+server {
+    listen      32123;
+    server_name _;
+
+    location /static/ {
+        root /var/lib/telega/;
+        expires 14d;
+    }
+    location /frame.html {
+        root /var/lib/telega/templates/;
+    }
+    location / {
+        ##proxy_pass localhost:32843;
+    }
+}
