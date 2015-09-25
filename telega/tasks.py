@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+import logging
 from random import randint, shuffle
 from datetime import datetime, timedelta
 
@@ -11,21 +12,21 @@ from telega.common import DbManager, config
 
 class TaskDbManager(DbManager):
     def remove_old_tasks(self):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     DELETE FROM Tasks
                     WHERE time < (UTC_TIMESTAMP() - INTERVAL %s HOUR)
                 """, config['task_expire_hours'])
 
     def remove_old_events(self):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     DELETE FROM Events
                     WHERE end < (NOW() - INTERVAL %s DAY)
                 """, config['keep_event_days'])
 
     def get_next_task(self):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     SELECT *
                     FROM Tasks
@@ -39,7 +40,7 @@ class TaskDbManager(DbManager):
         return result
 
     def get_last_task_time(self, type):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     SELECT MAX(time) AS time
                     FROM Tasks
@@ -55,7 +56,7 @@ class TaskDbManager(DbManager):
         })
 
     def add_end_time(self, begin, channel):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     UPDATE Events
                     SET end = %s
@@ -72,7 +73,7 @@ class TaskDbManager(DbManager):
             return cursor.fetchone()['time']
 
     def update_channel_date(self, channel, date):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     UPDATE Channels
                     SET known_until = %s

@@ -2,10 +2,45 @@
 <head>
   <meta charset="utf-8">
   <title>ТелеГА</title>
+  <link rel="icon" type="image/png" href="/static/img/telega-icon.png">
+  <link rel="stylesheet" type="text/css" href="/static/telega.css">
   <script type="text/javascript" src="//yastatic.net/angularjs/1.3.16/angular.min.js"></script>
-  <script type="text/javascript" src="/static/table-model.js"></script>
+  <script type="text/javascript" src="/static/app.js"></script>
+  <script type="text/javascript">
+    pageInfo = //PAGE_INFO_PLACEHOLDER;
+      {
+        "tabs": [
+          {"name": "Текущие", "link": "current", "provider": "CurrentEventsTab"},
+          {"name": "Сегодня", "link": "today", "provider": "TodayEventsTab"},
+          {"name": "Фильтры", "link": "filters", "provider": "FiltersTab"},
+          {"name": "Эвристики", "link": "heuristics", "provider": "HeuristicsTab"},
+          {"name": "Каналы", "link": "channels", "provider": "ChannelsTab"}
+        ],
+        "columns": [
+          {"name": "name", "title": "Канал", "editable": false},
+          {"name": "button", "title": "Позиция", "editable": true},
+          {"name": "link", "title": "Ссылка", "editable": true}
+        ]
+      };
+  </script>
 </head>
-<body ng-app>
-  Hello!
+<body ng-app="telega">
+  <div ng-controller="TabsController as ctl">
+    <div ng-repeat="tab in ctl.tabs">
+      <a href="/{{ tab.link }}">{{ tab.name }}</a>
+    </div>
+  </div>
+  <table ng-controller="TableController as table">
+    <tr><th ng-repeat="column in table.columns">{{ column.title }}</th></tr>
+    <tr ng-repeat="row in table.rows">
+      <td ng-repeat="column in table.columns" class="sending-{{ row[column.name].sending }}">
+        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value" ng-dblclick="table.openEditor(column, row)"></span><img ng-show="row[column.name].sending" src="/static/img/wait-small.gif">
+        <form ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(column, row)"><input ng-model="row[column.name].value"></form>
+      </td>
+    </tr>
+    <tr ng-if="table.loading"><td colspan="{{ table.columns.length }}">
+      <img src="/static/img/wait-big.gif">
+    </td></tr>
+  </table>
 </body>
 </html>

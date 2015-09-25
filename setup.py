@@ -2,10 +2,15 @@
 import os
 from distutils.core import setup
 
-def add_to_lib(dir):
-    path = os.path.join('/var/lib/telega', dir)
-    files = [os.path.join(dir, file) for file in os.listdir(dir) if not file.startswith('@')]
-    return (path, files)
+def add_to_lib(*dirs):
+    path = os.path.join('.', *dirs)
+    target = os.path.join('/var/lib/telega', *dirs)
+    files = []
+    for file in os.listdir(path):
+        file_path = os.path.join(path, file)
+        if os.path.isfile(file_path):
+            files.append(file_path)
+    return (target, files)
 
 
 setup(
@@ -23,6 +28,7 @@ setup(
         ('/etc/init', ['etc/init/telega-worker.conf']),
         ('/etc', ['etc/telega.conf']),
         add_to_lib('templates'),
+        add_to_lib('static', 'img'),
         add_to_lib('static'),
     ],
 )

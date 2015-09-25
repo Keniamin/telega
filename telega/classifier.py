@@ -16,7 +16,7 @@ class FiltersDbManager(DbManager):
             state = 'heuristic'
         else:
             state = None
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     UPDATE Events
                     SET state = %s,

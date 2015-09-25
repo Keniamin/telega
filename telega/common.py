@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 import yaml
 import logging
+from datetime import datetime
 
 import pymysql
 
@@ -13,7 +14,7 @@ class InterruptTask(Exception): pass
 
 class DbManager(object):
     def __init__(self):
-        db_conf = config.get('db', {})
+        db_conf = config['db']
         self.db = pymysql.connect(
             db=db_conf['name'],
             user=db_conf['user'],
@@ -23,8 +24,12 @@ class DbManager(object):
         )
         self.db.autocommit(True)
 
+    def cursor(self):
+        self.db.ping()
+        return self.db.cursor()
+
     def insert(self, table, obj):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             request = """
                 INSERT INTO {}({})
                 VALUES ({})
@@ -35,7 +40,7 @@ class DbManager(object):
             return cursor.lastrowid
 
     def select(self, table, id):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     SELECT *
                     FROM {}
@@ -44,7 +49,7 @@ class DbManager(object):
             return cursor.fetchone()
 
     def select_all(self, table, where=None):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             request = """
                 SELECT *
                 FROM """ + table;
@@ -57,7 +62,7 @@ class DbManager(object):
                 row = cursor.fetchone()
 
     def remove(self, table, id):
-        with self.db.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute("""
                     DELETE FROM {}
                     WHERE id = %s
