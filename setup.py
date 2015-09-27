@@ -25,7 +25,10 @@ setup(
     scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
         ('/etc/nginx/sites-enabled', ['etc/nginx/telega']),
-        ('/etc/init', ['etc/init/telega-worker.conf']),
+        ('/etc/init', [
+            'etc/init/telega-worker.conf',
+            'etc/init/telega-web.conf',
+        ]),
         ('/etc', ['etc/telega.conf']),
         add_to_lib('templates'),
         add_to_lib('static', 'img'),

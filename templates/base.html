@@ -1,0 +1,32 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ТелеГА</title>
+  <link rel="icon" type="image/png" href="/static/img/telega-icon.png">
+  <link rel="stylesheet" type="text/css" href="/static/telega.css">
+  <script type="text/javascript" src="//yastatic.net/angularjs/1.3.16/angular.min.js"></script>
+  <script type="text/javascript" src="/static/app.js"></script>
+  <script type="text/javascript">
+    pageInfo = PAGE_INFO_PLACEHOLDER;
+  </script>
+</head>
+<body ng-app="telega">
+  <div ng-controller="TabsController as tabs">
+    <div ng-repeat="tab in tabs.tabs" class="tab active-{{ tab.active }}">
+      <a href="/{{ tab.link }}">{{ tab.name }}</a>
+    </div>
+  </div>
+  <table ng-controller="TableController as table" class="data-table">
+    <thead><th ng-repeat="column in table.columns">{{ column.title }}</th></thead>
+    <tr ng-repeat="row in table.rows">
+      <td ng-repeat="column in table.columns" class="sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
+        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span><img ng-show="row[column.name].sending" src="/static/img/wait-small.gif">
+        <form ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(column, row)"><input ng-model="row[column.name].value"></form>
+      </td>
+    </tr>
+    <tr ng-if="table.loading"><td colspan="{{ table.columns.length }}">
+      <img src="/static/img/wait-big.gif">
+    </td></tr>
+  </table>
+</body>
+</html>

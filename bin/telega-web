@@ -1,5 +1,63 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+import json
 import logging
+from wsgiref.simple_server import make_server
 
-import telega.common
+from fresco import FrescoApp, GET, Response
+
+from telega.common import config
+import telega.views
+
+tabs = []
+template = None
+
+
+def base(page=None):
+    if not page:
+        return Response.redirect('/current')
+
+    global tabs
+    columns = None
+    for tab in tabs:
+        if tab['link'] == page:
+            columns = tab['object'].columns
+            break
+    else:
+        return Response.not_found()
+
+    page_info = {
+        'columns': columns,
+        'tabs': [
+            {k: v for k, v in tab.iteritems() if k != 'object'}
+            for tab in tabs
+        ],
+    }
+
+    global template
+    if template is None:
+        with open('/var/lib/telega/templates/base.html') as template_file:
+            template = template_file.read()
+    return Response(
+        template.replace('PAGE_INFO_PLACEHOLDER', json.dumps(page_info))
+    )
+
+
+def make_app():
+    global tabs
+    app = FrescoApp()
+    for name, obj in telega.views.__dict__.iteritems():
+        if name.endswith('View'):
+            tabs.append({
+                'name': obj.name,
+                'link': obj.link,
+                'object': obj,
+            })
+            app.include('/api/' + obj.link, obj())
+    app.route('/<page:str>', GET, base)
+    app.route('/', GET, base)
+    return app
+
+
+if __name__ == '__main__':
+    make_server('localhost', config['web']['port'], make_app()).serve_forever()
