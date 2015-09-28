@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS Channels (
 CREATE TABLE IF NOT EXISTS Filters (
     id INT NOT NULL AUTO_INCREMENT,
     title TEXT NOT NULL,
-    deleting ENUM('+') DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -24,14 +23,13 @@ CREATE TABLE IF NOT EXISTS Heuristics (
     genre TINYTEXT NOT NULL,
     year TINYTEXT NOT NULL,
     country TINYTEXT NOT NULL,
-    deleting ENUM('+') DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS Events (
     id INT NOT NULL AUTO_INCREMENT,
     begin DATETIME NOT NULL,
-    end DATETIME,
+    end DATETIME DEFAULT NULL,
     title TEXT NOT NULL,
     link TINYTEXT NOT NULL,
     channel_id INT NOT NULL,

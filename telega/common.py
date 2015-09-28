@@ -61,6 +61,14 @@ class DbManager(object):
                 yield row
                 row = cursor.fetchone()
 
+    def update(self, table, id, field, value):
+        with self.cursor() as cursor:
+            cursor.execute("""
+                    UPDATE {}
+                    SET {} = %s
+                    WHERE id = %s
+                """.format(table, field), (value, id))
+
     def remove(self, table, id):
         with self.cursor() as cursor:
             cursor.execute("""

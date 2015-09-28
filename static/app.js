@@ -11,9 +11,9 @@ angular.module('telega', [])
     var self = this;
     self.tabs = pageInfo.tabs;
 
-    path = location.pathname;
+    var path = location.pathname.slice(1);
     angular.forEach(self.tabs, function (tab) {
-        tab.active = (tab.link == path);
+        tab._current = (tab.link == path);
     });
 })
 .controller('TableController', function ($http, $log) {
@@ -22,14 +22,18 @@ angular.module('telega', [])
     self.rows = [];
     self.loading = true;
     self.columns = pageInfo.columns;
-
     self.apiPath = '/api' + location.pathname;
+
     $http.get(self.apiPath).then(
         function (response) {
+            var index = 0;
             self.rows = angular.forEach(response.data, function(row) {
                 angular.forEach(row, function(value, column, row) {
-                    row[column] = {value: value, edit: false, sending: false};
+                    if (column != 'id' && column[0] != '_') {
+                        row[column] = {value: value, edit: false, sending: false};
+                    }
                 });
+                row._index = ++index;
             });
             self.loading = false;
         },
@@ -41,14 +45,19 @@ angular.module('telega', [])
     /* Functions. */
     self.openEditor = function (column, row) {
         if (column.editable) {
+            row[column.name].oldValue = row[column.name].value;
             row[column.name].edit = true;
         }
     };
-    self.postChanges = function (column, row) {
+    self.postChanges = function (form, column, row) {
+        if (form.$invalid) {
+            return;
+        }
         row[column.name].edit = false;
         row[column.name].sending = true;
         $http.post(self.apiPath, {
             id: row.id,
+            field: column.name,
             value: row[column.name].value,
         }).then(
             function(response) {
@@ -58,5 +67,11 @@ angular.module('telega', [])
                 noticeApiError($log, self.apiPath, response);
             }
         );
+    };
+    self.catchEscape = function ($event, column, row) {
+        if ($event.keyCode == 27) {
+            row[column.name].value = row[column.name].oldValue;
+            row[column.name].edit = false;
+        }
     };
 });

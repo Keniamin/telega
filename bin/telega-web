@@ -13,15 +13,19 @@ tabs = []
 template = None
 
 
+def log_error(request, exc):
+    return Response.internal_server_error()
+
+
 def base(page=None):
     if not page:
-        return Response.redirect('/current')
+        return Response.redirect('/current/')
 
     global tabs
     columns = None
     for tab in tabs:
         if tab['link'] == page:
-            columns = tab['object'].columns
+            columns = tab['_object'].columns
             break
     else:
         return Response.not_found()
@@ -29,7 +33,7 @@ def base(page=None):
     page_info = {
         'columns': columns,
         'tabs': [
-            {k: v for k, v in tab.iteritems() if k != 'object'}
+            {k: v for k, v in tab.iteritems() if not k.startswith('_')}
             for tab in tabs
         ],
     }
@@ -46,15 +50,18 @@ def base(page=None):
 def make_app():
     global tabs
     app = FrescoApp()
+    app.process_exception(log_error)
     for name, obj in telega.views.__dict__.iteritems():
         if name.endswith('View'):
             tabs.append({
                 'name': obj.name,
                 'link': obj.link,
-                'object': obj,
+                '_order': obj.order,
+                '_object': obj,
             })
             app.include('/api/' + obj.link, obj())
-    app.route('/<page:str>', GET, base)
+    tabs = sorted(tabs, key=(lambda t: t['_order']))
+    app.route('/<page:str>/', GET, base)
     app.route('/', GET, base)
     return app
 

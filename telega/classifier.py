@@ -5,9 +5,6 @@ from telega.common import DbManager
 
 
 class FiltersDbManager(DbManager):
-    def select_active(self, table):
-        return self.select_all(table, where='deleting IS NULL')
-
     def reset_event_state(self, event, filter=None, heuristic=None):
         assert (filter is None) or (heuristic is None)
         if filter is not None:
@@ -62,23 +59,27 @@ def _match_heuristic(info, heuristic):
         )
         return False
 
-def check_filters(event):
+def check_filters(event, filters=None):
     if event.get('state') == 'filter':
         return True
-    for filter in db.select_active('Filters'):
+    if filters is None:
+        filters = db.select_all('Filters')
+    for filter in filters:
         if filter['title'].lower() in event['title'].lower():
             db.reset_event_state(event['id'], filter=filter['id'])
             return True
     return False
 
-def check_heuristics(info, event=None):
+def check_heuristics(info, event=None, heuristics=None):
     if event is None:
         event = info
     if event.get('state') == 'filter':
         return False
     if event.get('state') == 'heuristic':
         return True
-    for heuristic in db.select_active('Heuristics'):
+    if heuristics is None:
+        heuristics = db.select_all('Heuristics')
+    for heuristic in heuristics:
         if _match_heuristic(info, heuristic):
             db.reset_event_state(event['id'], heuristic=heuristic['id'])
             return True

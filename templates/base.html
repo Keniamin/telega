@@ -12,16 +12,24 @@
 </head>
 <body ng-app="telega">
   <div ng-controller="TabsController as tabs">
-    <div ng-repeat="tab in tabs.tabs" class="tab active-{{ tab.active }}">
-      <a href="/{{ tab.link }}">{{ tab.name }}</a>
+    <div ng-repeat="tab in tabs.tabs" class="tab current-{{ tab._current }}">
+      <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
     </div>
   </div>
   <table ng-controller="TableController as table" class="data-table">
-    <thead><th ng-repeat="column in table.columns">{{ column.title }}</th></thead>
-    <tr ng-repeat="row in table.rows">
+    <thead>
+      <th>№</th>
+      <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
+    </thead>
+    <tr ng-repeat="row in table.rows" class="{{ row._class }}">
+      <td><span ng-bind="row._index"></span></td>
       <td ng-repeat="column in table.columns" class="sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
-        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span><img ng-show="row[column.name].sending" src="/static/img/wait-small.gif">
-        <form ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(column, row)"><input ng-model="row[column.name].value"></form>
+        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
+        <img ng-if="column.editable" ng-show="row[column.name].sending" src="/static/img/wait-small.gif">
+        <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(cellForm, column, row)" novalidate>
+          <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
+          <div ng-if="column.hint" class="hint" ng-bind="column.hint"></div>
+        </form>
       </td>
     </tr>
     <tr ng-if="table.loading"><td colspan="{{ table.columns.length }}">
