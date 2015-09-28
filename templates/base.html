@@ -12,6 +12,10 @@
 </head>
 <body ng-app="telega">
   <div ng-controller="TabsController as tabs">
+    <div>
+      <img src="/static/img/_telega.png">
+      <div class="title">ТелеГА</div>
+    </div>
     <div ng-repeat="tab in tabs.tabs" class="tab current-{{ tab._current }}">
       <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
     </div>
@@ -21,7 +25,7 @@
       <th>№</th>
       <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
     </thead>
-    <tr ng-repeat="row in table.rows" class="{{ row._class }}">
+    <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
       <td><span ng-bind="row._index"></span></td>
       <td ng-repeat="column in table.columns" class="sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
         <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>

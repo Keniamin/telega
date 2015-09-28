@@ -33,6 +33,7 @@ angular.module('telega', [])
                         row[column] = {value: value, edit: false, sending: false};
                     }
                 });
+                row._highlighted = (row.id == pageInfo.hl);
                 row._index = ++index;
             });
             self.loading = false;

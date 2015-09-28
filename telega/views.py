@@ -15,7 +15,7 @@ class ViewsDbManager(DbManager):
             return cursor.fetchall()
 
     def _get_timed_events(self, begin, end, state):
-        return self._query("""
+        return list(self._query("""
             SELECT
                 e.id,
                 e.title,
@@ -31,7 +31,7 @@ class ViewsDbManager(DbManager):
               AND e.begin <= %s
               AND e.end > %s
             ORDER BY e.begin
-        """, (state, end, begin))
+        """, (state, end, begin)))
 
     def get_current_events(self, state):
         begin = datetime.now()

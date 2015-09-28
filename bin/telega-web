@@ -4,7 +4,7 @@ import json
 import logging
 from wsgiref.simple_server import make_server
 
-from fresco import FrescoApp, GET, Response
+from fresco import FrescoApp, GET, Response, context
 
 from telega.common import config
 import telega.views
@@ -37,6 +37,8 @@ def base(page=None):
             for tab in tabs
         ],
     }
+    if context.request.form.get('hl'):
+        page_info['hl'] = context.request.form.get('hl')
 
     global template
     if template is None:
