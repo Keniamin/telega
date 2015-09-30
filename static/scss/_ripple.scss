@@ -23,13 +23,14 @@
 }
 
 div.ripple {
-    background: none;
     position: relative;
     width: 32px;
     height: 32px;
+    background: none;
 
-    :before, :after {
+    &:before, &:after {
         position: absolute;
+        box-sizing: border-box;
         top: 50%;
         left: 50%;
         width: 0;
@@ -38,13 +39,13 @@ div.ripple {
         border: black solid 3px;
         content: '';
         opacity: 0;
-        animation: uil-ripple 2s ease-out infinite;
+        animation: ripple 2s ease-out infinite;
     }
-    :before {
-        border-color: #d3addf;
+    &:before {
+        border-color: #D3ADDF;
     }
-    :after {
-        border-color: #80aaf3;
+    &:after {
+        border-color: #80AAF3;
         animation-delay: 1s;
     }
 }

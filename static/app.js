@@ -11,7 +11,7 @@ angular.module('telega', [])
     var self = this;
     self.tabs = pageInfo.tabs;
 
-    var path = location.pathname.slice(1);
+    var path = location.pathname.replace(/^\/([^/]*).*$/, '$1');
     angular.forEach(self.tabs, function (tab) {
         tab._current = (tab.link == path);
     });

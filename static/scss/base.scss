@@ -1,0 +1,33 @@
+@import 'ripple';
+@import 'loading-bar';
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin-left: 175px;
+}
+
+div.menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: #AAAAAA;
+    text-align: right;
+
+    div.header {
+        margin: 16px 0px;
+        text-align: center;
+    }
+    div.tab {
+        padding: 8px 24px 8px 48px;
+        color: #FFFFFF;
+
+        &.current-true {
+            color: #FFFF00;
+        }
+    }
+}
+
