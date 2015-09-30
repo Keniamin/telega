@@ -1,0 +1,31 @@
+$color: #57f78c;
+
+@keyframes load {
+    0% {left: -18.75%; }
+    100% {left: -6.25%; }
+}
+
+.scroller {
+    position: relative;
+    width: 128px;
+    height: 24px;
+    border: solid gray 2px;
+    border-radius: 8px;
+    overflow: hidden;
+
+    :after {
+        position: absolute;
+        width: 125%;
+        height: 100%;
+        content: '';
+        background: repeating-linear-gradient(to right,
+            transparent 0%,
+            transparent 4%,
+            $color 6%,
+            $color 8%,
+            transparent 10%
+        );
+        transform: skewX(-30deg);
+        animation: load 1s infinite linear;
+    }
+}

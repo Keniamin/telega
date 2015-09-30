@@ -1,0 +1,50 @@
+@keyframes ripple {
+    0% {
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        opacity: 0;
+    }
+    33% {
+        top: 28%;
+        left: 28%;
+        width: 44%;
+        height: 44%;
+        opacity: 1;
+    }
+    100% {
+        top: 6%;
+        left: 6%;
+        width: 88%;
+        height: 88%;
+        opacity: 0;
+    }
+}
+
+div.ripple {
+    background: none;
+    position: relative;
+    width: 32px;
+    height: 32px;
+
+    :before, :after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        border: black solid 3px;
+        content: '';
+        opacity: 0;
+        animation: uil-ripple 2s ease-out infinite;
+    }
+    :before {
+        border-color: #d3addf;
+    }
+    :after {
+        border-color: #80aaf3;
+        animation-delay: 1s;
+    }
+}
