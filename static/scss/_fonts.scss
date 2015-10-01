@@ -1,0 +1,14 @@
+@font-face {
+    @if $telega-font == 'Simple Iriska' {
+        font-family: 'Simple Iriska';
+        src: url(/static/fonts/SimpleIriska.ttf);
+    }
+    @if $telega-font == 'Beer Money' {
+        font-family: 'Beer Money';
+        src: url(/static/fonts/beer_money.ttf);
+    }
+    @if $telega-font == 'Voronov' {
+        font-family: 'Voronov';
+        src: url(/static/fonts/voronov.ttf);
+    }
+}

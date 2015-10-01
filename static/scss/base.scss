@@ -1,14 +1,16 @@
 @import 'ripple';
 @import 'loading-bar';
 
+$telega-font: 'Voronov';
+@import 'fonts';
+
 * {
     box-sizing: border-box;
 }
-
 body {
     margin-left: 175px;
+    font-size: 12pt;
 }
-
 div.menu {
     position: fixed;
     top: 0;
@@ -20,14 +22,25 @@ div.menu {
     div.header {
         margin: 16px 0px;
         text-align: center;
+        font: 3em $telega-font;
+
+        div.title {
+            position: relative;
+            top: -11px;
+            transform: rotateZ(-7deg);
+        }
     }
     div.tab {
-        padding: 8px 24px 8px 48px;
+        padding: 8px 24px 8px 32px;
+        font-size: 1.5em;
         color: #FFFFFF;
+        cursor: pointer;
 
-        &.current-true {
-            color: #FFFF00;
+        &.current-true { color: #FFFF00; }
+        &:hover { color: #FF0000; }
+        a {
+            color: inherit;
+            text-decoration: none;
         }
     }
 }
-

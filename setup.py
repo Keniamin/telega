@@ -31,7 +31,9 @@ setup(
         ]),
         ('/etc', ['etc/telega.conf']),
         add_to_lib('templates'),
+        add_to_lib('static', 'fonts'),
         add_to_lib('static', 'img'),
-        add_to_lib('static'),
+        add_to_lib('static', 'css'),
+        add_to_lib('static', 'js'),
     ],
 )
