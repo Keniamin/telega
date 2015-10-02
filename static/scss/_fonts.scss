@@ -1,13 +1,13 @@
-@font-face {
-    @if $telega-font == 'Simple Iriska' {
+@mixin load-font($font) {
+    @if $font == 'Simple Iriska' {
         font-family: 'Simple Iriska';
         src: url(/static/fonts/SimpleIriska.ttf);
     }
-    @if $telega-font == 'Beer Money' {
+    @if $font == 'Beer Money' {
         font-family: 'Beer Money';
         src: url(/static/fonts/beer_money.ttf);
     }
-    @if $telega-font == 'Voronov' {
+    @if $font == 'Voronov' {
         font-family: 'Voronov';
         src: url(/static/fonts/voronov.ttf);
     }

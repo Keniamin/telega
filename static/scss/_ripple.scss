@@ -22,30 +22,30 @@
     }
 }
 
-div.ripple {
+@mixin ripple($size, $period, $color1, $color2) {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: $size;
+    height: $size;
     background: none;
 
     &:before, &:after {
-        position: absolute;
         box-sizing: border-box;
+        position: absolute;
         top: 50%;
         left: 50%;
         width: 0;
         height: 0;
         border-radius: 50%;
-        border: black solid 3px;
+        border: black solid ($size / 10);
         content: '';
         opacity: 0;
-        animation: ripple 2s ease-out infinite;
+        animation: ripple $period ease-out infinite;
     }
     &:before {
-        border-color: #D3ADDF;
+        border-color: $color1;
     }
     &:after {
-        border-color: #80AAF3;
-        animation-delay: 1s;
+        border-color: $color2;
+        animation-delay: ($period / 2);
     }
 }

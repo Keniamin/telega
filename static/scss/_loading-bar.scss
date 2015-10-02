@@ -1,23 +1,21 @@
-$color: #57F78C;
-
 @keyframes load {
-    0% {left: -18.75%; }
-    100% {left: -6.25%; }
+    0% { left: -18.75%; }
+    100% { left: -6.25%; }
 }
 
-div.loading-bar {
+@mixin loading-bar($size, $period, $color) {
+    display: inline-block;
     position: relative;
-    width: 128px;
-    height: 24px;
-    border: solid gray 2px;
-    border-radius: 8px;
+    width: (6 * $size);
+    height: $size;
+    border: solid gray 1px;
+    border-radius: ($size / 3);
     overflow: hidden;
 
     &:after {
         position: absolute;
         width: 125%;
         height: 100%;
-        content: '';
         background: repeating-linear-gradient(to right,
             transparent 0%,
             transparent 4%,
@@ -25,7 +23,8 @@ div.loading-bar {
             $color 8%,
             transparent 10%
         );
+        content: '';
         transform: skewX(-30deg);
-        animation: load 1s infinite linear;
+        animation: load $period infinite linear;
     }
 }

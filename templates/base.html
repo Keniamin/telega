@@ -39,7 +39,7 @@
           </form>
         </td>
       </tr>
-      <tr ng-if="table.loading"><td colspan="{{ table.columns.length }}">
+      <tr ng-if="table.loading"><td colspan="{{ table.columns.length+1 }}" class="loading-bar">
         <div class="loading-bar"></div>
       </td></tr>
     </table>
