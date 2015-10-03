@@ -4,6 +4,10 @@
 
 $telega-font: 'Voronov';
 @font-face {
+    // This is for IE
+    @include load-font($telega-font, 1);
+}
+@font-face {
     @include load-font($telega-font);
 }
 
@@ -11,8 +15,10 @@ $telega-font: 'Voronov';
     box-sizing: border-box;
 }
 body {
-    margin-left: 12em;
-    background-color: #EEEEEE;
+    margin-left: 11em;
+    padding: 1em;
+    padding-bottom: 4em;
+    background-color: #EEE;
     font-size: 12pt;
 }
 div.menu {
@@ -20,7 +26,7 @@ div.menu {
     top: 0;
     left: 0;
     bottom: 0;
-    background-color: #AAAAAA;
+    background-color: #AAA;
     text-align: right;
 
     div.header {
@@ -36,13 +42,13 @@ div.menu {
     }
     div.tab {
         padding: 0.33333em 1em 0.33333em 1.33333em;
-        color: #FFFFFF;
+        color: white;
         font-size: 1.5em;
         cursor: pointer;
 
-        &.current-true { color: #FFFF00; }
+        &.current-true { color: yellow; }
         &:hover {
-            text-shadow: 0 0 0.46em #FFFF00;
+            text-shadow: 0 0 0.46em yellow;
         }
         a {
             color: inherit;
@@ -51,11 +57,78 @@ div.menu {
     }
 }
 table.data-table {
-    td.loading-bar { text-align: center; }
-}
-div.loading-bar {
-    @include loading-bar(1.5em, 1s, #57F78C);
-}
-div.ripple {
-    @include ripple(1em, 2s, #D3ADDF, #80AAF3);
+    width: 100%;
+    border: 2px solid #DDD;
+    background-color: white;
+    line-height: normal;
+
+    th {
+        border-bottom: 2px solid #DDD;
+        padding: 0.25em;
+        background-color: #E8E8E8;
+        text-align: inherit;
+        font-weight: bold;
+    }
+    tr.highlighted {
+        background-color: #DEF;
+    }
+    td {
+        position: relative;
+        border-top: 1px solid #DDD;
+        padding: 0.25em;
+
+        span.ripple {
+            display: inline-block;
+            margin: -0.33333em 0;
+            @include ripple(1.5em, 2s, #D3ADDF, #80AAF3);
+        }
+        span.strut {
+            display: inline-block;
+        }
+    }
+    form {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+
+        input {
+            height: 100%;
+            width: 100%;
+            outline-color: #5D5;
+            border: 1px solid #5D5;
+            background-color: inherit;
+            text-align: inherit;
+
+            &.ng-invalid{
+                outline-color: #E88;
+                border-color: #E88;
+            }
+            &:not(:focus) ~ .hint {
+                display: none;
+            }
+        }
+        div.hint {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 555;
+
+            span {
+                display: inline-block;
+                margin-top: 1px;
+                border: 1px solid black;
+                padding: 0.25em;
+                background-color: #FFFFCC;
+                color: #999;
+                font-size: 70%;
+            }
+        }
+    }
+    div.loading-bar {
+        @include loading-bar(1.5em, 1s, #57F78C);
+    }
 }

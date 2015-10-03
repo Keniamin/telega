@@ -105,10 +105,10 @@ class ViewHelper(object):
 class EventsViewHelper(ViewHelper):
     columns = [
         {'name': 'title', 'title': 'Название'},
-        {'name': 'begin', 'title': 'Начало'},
-        {'name': 'end', 'title': 'Окончание'},
-        {'name': 'channel', 'title': 'Канал'},
-        {'name': 'reason', 'title': 'Критерий'},
+        {'name': 'begin', 'title': 'Начало', 'class': 'text-center'},
+        {'name': 'end', 'title': 'Окончание', 'class': 'text-center'},
+        {'name': 'channel', 'title': 'Канал', 'class': 'text-right'},
+        {'name': 'reason', 'title': 'Критерий', 'class': 'text-center'},
     ]
 
     def get(self):
@@ -164,7 +164,7 @@ class HeuristicsView(ViewHelper):
         {'name': 'type', 'title': 'Тип события', 'editable': True},
         {'name': 'genre', 'title': 'Жанр', 'editable': True},
         {'name': 'country', 'title': 'Страна', 'editable': True},
-        {'name': 'year', 'title': 'Годы', 'editable': True, 'pattern': '(19[0-9][0-9]|20[0-9][0-9])(-(19[0-9][0-9]|20[0-9][0-9]))?', 'hint': 'год или интервал<br>года с 1900 по 2099'},
+        {'name': 'year', 'title': 'Годы', 'class': 'text-right', 'editable': True, 'pattern': '(19[0-9][0-9]|20[0-9][0-9])(-(19[0-9][0-9]|20[0-9][0-9]))?', 'hint': 'год или интервал, года с 1900 по 2099'},
     ]
 
     def get(self):
@@ -191,14 +191,15 @@ class ChannelsView(ViewHelper):
     link = 'channels'
     columns = [
         {'name': 'name', 'title': 'Название'},
-        {'name': 'button', 'title': 'Канал', 'editable': True, 'pattern': '[0-9]+', 'hint': 'число'},
-        {'name': 'link', 'title': 'Указатель', 'editable': True, 'pattern': '[-+a-z0-9._]+', 'hint': 'ссылка канала на s-tv.ru'},
+        {'name': 'button', 'title': 'Канал', 'class': 'text-center', 'editable': True, 'pattern': '[0-9]+', 'hint': 'число'},
+        {'name': 'link', 'title': 'Указатель', 'class': 'text-right', 'editable': True, 'pattern': '[-+a-z0-9._]+', 'hint': 'ссылка канала на s-tv.ru'},
     ]
 
     def get(self):
         return Response.json(db.get_channels())
 
     def post(self):
+        raise ValueError
         self._post_to_table('Channels')
         return Response('ok')
 

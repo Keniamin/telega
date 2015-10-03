@@ -1,14 +1,22 @@
-@mixin load-font($font) {
+@mixin load-font($font, $ie: 0) {
     @if $font == 'Simple Iriska' {
         font-family: 'Simple Iriska';
-        src: url(/static/fonts/SimpleIriska.ttf);
+        src: url('/static/fonts/SimpleIriska.ttf') format('truetype');
     }
     @if $font == 'Beer Money' {
         font-family: 'Beer Money';
-        src: url(/static/fonts/beer_money.ttf);
+        @if $ie == 1 {
+            src: url('/static/fonts/beer_money.eot');
+        } @else {
+            src: url('/static/fonts/beer_money.ttf') format('truetype');
+        }
     }
     @if $font == 'Voronov' {
         font-family: 'Voronov';
-        src: url(/static/fonts/voronov.ttf);
+        @if $ie == 1 {
+            src: url('/static/fonts/voronov.eot');
+        } @else {
+            src: url('/static/fonts/voronov.ttf') format('truetype');
+        }
     }
 }

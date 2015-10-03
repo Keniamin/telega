@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -22,27 +23,26 @@
       <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
     </div>
   </div>
-  <div class="content">
-    <table ng-controller="TableController as table" class="data-table">
-      <thead>
-        <th>№</th>
-        <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
-      </thead>
-      <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
-        <td><span ng-bind="row._index"></span></td>
-        <td ng-repeat="column in table.columns" class="sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
-          <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
-          <div ng-if="column.editable" ng-show="row[column.name].sending" class="ripple"></div>
-          <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(cellForm, column, row)" novalidate>
-            <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
-            <div ng-if="column.hint" class="hint" ng-bind="column.hint"></div>
-          </form>
-        </td>
-      </tr>
-      <tr ng-if="table.loading"><td colspan="{{ table.columns.length+1 }}" class="loading-bar">
-        <div class="loading-bar"></div>
-      </td></tr>
-    </table>
-  </div>
+  <table ng-controller="TableController as table" class="data-table table-striped">
+    <thead class="text-center">
+      <th>№</th>
+      <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
+    </thead>
+    <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
+      <td class="text-center"><span ng-bind="row._index"></span></td>
+      <td ng-repeat="column in table.columns" class="{{ column.class }} sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
+        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
+        <span ng-if="column.editable" ng-show="row[column.name].sending && !row[column.name].edit" class="ripple"></span>
+        <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(cellForm, column, row)" novalidate>
+          <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
+          <div ng-if="column.hint" class="hint"><span ng-bind="column.hint"></span></div>
+        </form>
+        <span class="strut"></span>
+      </td>
+    </tr>
+    <tr ng-if="table.loading"><td colspan="{{ table.columns.length+1 }}" class="loading-bar">
+      <div class="loading-bar"></div>
+    </td></tr>
+  </table>
 </body>
 </html>
