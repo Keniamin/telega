@@ -26,6 +26,9 @@ input {
     background-color: inherit;
     text-align: inherit;
 
+    label & {
+        font-weight: normal;
+    }
     &.ng-invalid{
         outline-color: #E88;
         border-color: #E88;
