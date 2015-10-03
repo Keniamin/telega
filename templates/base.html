@@ -23,29 +23,46 @@
       <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
     </div>
   </div>
-  <table ng-controller="TableController as table" class="data-table table-striped">
-    <thead class="text-center">
-      <th class="min">№</th>
-      <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
-    </thead>
-    <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
-      <td class="text-center">
-        <div ng-if="table.editable" class="deleter" ng-click="table.deleteRow(row)">X</div>
-        <span ng-bind="row._index"></span>
-      </td>
-      <td ng-repeat="column in table.columns" class="{{ column.class }} sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
-        <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
-        <span ng-if="column.editable" ng-show="row[column.name].sending && !row[column.name].edit" class="ripple"></span>
-        <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.postChanges(cellForm, column, row)" novalidate>
-          <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
+  <div ng-controller="TableController as table">
+    <table class="data-table table-striped">
+      <thead class="text-center">
+        <th class="min">№</th>
+        <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
+      </thead>
+      <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
+        <td class="text-center">
+          <div ng-if="table.editable" class="deleter" ng-click="table.deleteRow(row)">X</div>
+          <span ng-bind="row._index"></span>
+        </td>
+        <td ng-repeat="column in table.columns" class="{{ column.class }} sending-{{ row[column.name].sending }}" ng-dblclick="table.openCellEditor(column, row)">
+          <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
+          <span ng-if="column.editable" ng-show="row[column.name].sending && !row[column.name].edit" class="ripple"></span>
+          <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.applyChanges(cellForm, column, row)" novalidate>
+            <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
+            <div ng-if="column.hint" class="hint"><span ng-bind="column.hint"></span></div>
+          </form>
+          <span class="strut"></span>
+        </td>
+      </tr>
+      <tr ng-if="table.loading"><td colspan="{{ table.columns.length+1 }}" class="loading-bar">
+        <div class="loading-bar"></div>
+      </td></tr>
+    </table>
+    <button ng-if="table.editable" ng-hide="table.newRowForm.opened" class="btn btn-default float-right" ng-click="table.openAddRowForm()">+</button>
+    <form name="addForm" ng-if="table.editable" ng-show="table.newRowForm.opened" class="add-form float-right" ng-submit="table.addRow()" novalidate>
+      <label ng-repeat="column in table.columns">
+        <span class="float-left" ng-bind="column.title"></span>
+        <span class="control float-right text-right">
+          <input ng-model="table.newRowForm.object[column.name]" ng-model-options="{allowInvalid: true}" ng-pattern="column.pattern">
           <div ng-if="column.hint" class="hint"><span ng-bind="column.hint"></span></div>
-        </form>
-        <span class="strut"></span>
-      </td>
-    </tr>
-    <tr ng-if="table.loading"><td colspan="{{ table.columns.length+1 }}" class="loading-bar">
-      <div class="loading-bar"></div>
-    </td></tr>
-  </table>
+        </span>
+      </label>
+      <button ng-hide="table.newRowForm.sending" class="btn btn-default float-left" type="button" ng-click="table.closeAddRowForm()">Отмена</button>
+      <button ng-hide="table.newRowForm.sending" ng-disabled="addForm.$invalid" class="btn btn-success float-right" type="submit">Добавить</button>
+      <div class="text-center">
+        <div ng-show="table.newRowForm.sending" class="loading-bar"></div>
+      </div>
+    </form>
+  </div>
 </body>
 </html>

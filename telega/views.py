@@ -146,6 +146,10 @@ class FiltersView(ViewHelper):
     def get(self):
         return Response.json(db.get_filters())
 
+    def post(self):
+        db.insert('Filters', context.request.get_json())
+        return Response('ok')
+
     def put(self, id):
         self._unlock_classifier('filter', id)
         self._update_table_field('Filters', id)
@@ -174,6 +178,10 @@ class HeuristicsView(ViewHelper):
     def get(self):
         return Response.json(db.get_heuristics())
 
+    def post(self):
+        db.insert('Heuristics', context.request.get_json())
+        return Response('ok')
+
     def put(self, id):
         self._unlock_classifier('heuristic', id)
         self._update_table_field('Heuristics', id)
@@ -200,6 +208,10 @@ class ChannelsView(ViewHelper):
 
     def get(self):
         return Response.json(db.get_channels())
+
+    def post(self):
+        db.insert('Channels', context.request.get_json())
+        return Response('ok')
 
     def put(self, id):
         self._update_table_field('Channels', id)

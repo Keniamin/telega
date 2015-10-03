@@ -24,39 +24,49 @@ angular.module('telega', [])
     self.editable = false;
     self.columns = pageInfo.columns;
     self.apiPath = '/api' + location.pathname;
+    self.newRowForm = {
+        opened: false,
+        sending: false,
+        object: {},
+    };
 
     angular.forEach(self.columns, function(column) {
         if (column.editable) {
             self.editable = true;
         }
     });
-    $http.get(self.apiPath).then(
-        function (response) {
-            var index = 0;
-            self.rows = angular.forEach(response.data, function(row) {
-                angular.forEach(row, function(value, column, row) {
-                    if (column != 'id' && column[0] != '_') {
-                        row[column] = {value: value, edit: false, sending: false};
-                    }
-                });
-                row._highlighted = (row.id == pageInfo.hl);
-                row._index = ++index;
-            });
-            self.loading = false;
-        },
-        function (response) {
-            noticeApiError($log, self.apiPath, response);
-        }
-    );
+    setTimeout(function () {
+        self.loadRows();
+    }, 0);
 
     /* Functions. */
-    self.openEditor = function (column, row) {
+    self.loadRows = function () {
+        $http.get(self.apiPath).then(
+            function (response) {
+                var index = 0;
+                self.rows = angular.forEach(response.data, function(row) {
+                    angular.forEach(row, function(value, column, row) {
+                        if (column != 'id' && column[0] != '_') {
+                            row[column] = {value: value, edit: false, sending: false};
+                        }
+                    });
+                    row._highlighted = (row.id == pageInfo.hl);
+                    row._index = ++index;
+                });
+                self.loading = false;
+            },
+            function (response) {
+                noticeApiError($log, self.apiPath, response);
+            }
+        );
+    }
+    self.openCellEditor = function (column, row) {
         if (column.editable) {
             row[column.name].oldValue = row[column.name].value;
             row[column.name].edit = true;
         }
     };
-    self.postChanges = function (form, column, row) {
+    self.applyChanges = function (form, column, row) {
         if (form.$invalid) {
             return;
         }
@@ -68,6 +78,26 @@ angular.module('telega', [])
         }).then(
             function(response) {
                 row[column.name].sending = false;
+            },
+            function(response) {
+                noticeApiError($log, self.apiPath, response);
+            }
+        );
+    };
+    self.openAddRowForm = function () {
+        self.newRowForm.object = {};
+        self.newRowForm.opened = true;
+    };
+    self.closeAddRowForm = function () {
+        self.newRowForm.opened = false;
+    };
+    self.addRow = function () {
+        self.newRowForm.sending = true;
+        $http.post(self.apiPath, self.newRowForm.object).then(
+            function(response) {
+                self.newRowForm.opened = false;
+                self.newRowForm.sending = false;
+                self.loadRows();
             },
             function(response) {
                 noticeApiError($log, self.apiPath, response);
