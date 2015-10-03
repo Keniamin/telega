@@ -11,9 +11,6 @@ $telega-font: 'Voronov';
     @include load-font($telega-font);
 }
 
-* {
-    box-sizing: border-box;
-}
 body {
     margin-left: 11em;
     padding: 1em;
@@ -68,15 +65,35 @@ table.data-table {
         background-color: #E8E8E8;
         text-align: inherit;
         font-weight: bold;
+
+        &.min {
+            width: 1%;
+        }
     }
     tr.highlighted {
         background-color: #DEF;
+    }
+    tr:not(:hover) .deleter {
+        display: none;
     }
     td {
         position: relative;
         border-top: 1px solid #DDD;
         padding: 0.25em;
 
+        div.deleter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            padding: 0.05em 0.33333em;
+            border-radius: 0 0.5em 0.5em 0;
+            background-color: #FCC;
+            color: red;
+            font-family: 'Arial Black';
+            font-weight: bold;
+            cursor: pointer;
+        }
         span.ripple {
             display: inline-block;
             margin: -0.33333em 0;

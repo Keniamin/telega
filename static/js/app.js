@@ -21,9 +21,15 @@ angular.module('telega', [])
     var self = this;
     self.rows = [];
     self.loading = true;
+    self.editable = false;
     self.columns = pageInfo.columns;
     self.apiPath = '/api' + location.pathname;
 
+    angular.forEach(self.columns, function(column) {
+        if (column.editable) {
+            self.editable = true;
+        }
+    });
     $http.get(self.apiPath).then(
         function (response) {
             var index = 0;
@@ -56,13 +62,26 @@ angular.module('telega', [])
         }
         row[column.name].edit = false;
         row[column.name].sending = true;
-        $http.post(self.apiPath, {
-            id: row.id,
+        $http.put(self.apiPath + row.id, {
             field: column.name,
             value: row[column.name].value,
         }).then(
             function(response) {
                 row[column.name].sending = false;
+            },
+            function(response) {
+                noticeApiError($log, self.apiPath, response);
+            }
+        );
+    };
+    self.deleteRow = function (row) {
+        $http.delete(self.apiPath + row.id).then(
+            function(response) {
+                var index = 0;
+                self.rows.splice(row._index-1, 1);
+                angular.forEach(self.rows, function(row) {
+                    row._index = ++index;
+                });
             },
             function(response) {
                 noticeApiError($log, self.apiPath, response);

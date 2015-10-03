@@ -25,11 +25,14 @@
   </div>
   <table ng-controller="TableController as table" class="data-table table-striped">
     <thead class="text-center">
-      <th>№</th>
+      <th class="min">№</th>
       <th ng-repeat="column in table.columns" ng-bind="column.title"></th>
     </thead>
     <tr ng-repeat="row in table.rows" ng-class="{'highlighted': row._highlighted}" class="{{ row._class }}">
-      <td class="text-center"><span ng-bind="row._index"></span></td>
+      <td class="text-center">
+        <div ng-if="table.editable" class="deleter" ng-click="table.deleteRow(row)">X</div>
+        <span ng-bind="row._index"></span>
+      </td>
       <td ng-repeat="column in table.columns" class="{{ column.class }} sending-{{ row[column.name].sending }}" ng-dblclick="table.openEditor(column, row)">
         <span ng-hide="row[column.name].edit" ng-bind="row[column.name].value"></span>
         <span ng-if="column.editable" ng-show="row[column.name].sending && !row[column.name].edit" class="ripple"></span>

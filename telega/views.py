@@ -2,7 +2,7 @@
 import json
 from datetime import datetime, timedelta
 
-from fresco import Route, GET, POST, Response, context
+from fresco import Route, GET, POST, PUT, DELETE, Response, context
 
 from telega.common import DbManager, config
 import telega.classifier as classifier
@@ -84,13 +84,18 @@ class ViewHelper(object):
     __routes__ = [
         Route('/', GET, 'get'),
         Route('/', POST, 'post'),
+        Route('/<id:int>', PUT, 'put'),
+        Route('/<id:int>', DELETE, 'delete'),
     ]
+    
+    def get(self, *args, **kwargs): return Response.method_not_allowed([])
+    def post(self, *args, **kwargs): return Response.method_not_allowed([])
+    def put(self, *args, **kwargs): return Response.method_not_allowed([])
+    def delete(self, *args, **kwargs): return Response.method_not_allowed([])
 
     @staticmethod
-    def _post_to_table(table, data=None):
-        if data is None:
-            data = context.request.get_json()
-        id = data.get('id')
+    def _update_table_field(table, id):
+        data = context.request.get_json()
         field = data.get('field')
         if not id or not field:
             return
@@ -141,18 +146,17 @@ class FiltersView(ViewHelper):
     def get(self):
         return Response.json(db.get_filters())
 
-    def post(self):
-        data = context.request.get_json()
-        id = data.get('id')
-        if not id:
-            return Response.bad_request()
-
+    def put(self, id):
         self._unlock_classifier('filter', id)
-        self._post_to_table('Filters', data)
+        self._update_table_field('Filters', id)
         filter = db.select('Filters', id)
 
         for event in db.select_all('Events'):
             classifier.check_filters(event, filters=(filter,))
+        return Response('ok')
+
+    def delete(self, id):
+        db.remove('Filters', id)
         return Response('ok')
 
 
@@ -170,18 +174,17 @@ class HeuristicsView(ViewHelper):
     def get(self):
         return Response.json(db.get_heuristics())
 
-    def post(self):
-        data = context.request.get_json()
-        id = data.get('id')
-        if not id:
-            return Response.bad_request()
-
+    def put(self, id):
         self._unlock_classifier('heuristic', id)
-        self._post_to_table('Heuristics', data)
+        self._update_table_field('Heuristics', id)
         heuristic = db.select('Heuristics', id)
 
         for event in db.get_events_with_info():
             classifier.check_heuristics(event, heuristics=(heuristic,))
+        return Response('ok')
+
+    def delete(self, id):
+        db.remove('Heuristics', id)
         return Response('ok')
 
 
@@ -198,9 +201,12 @@ class ChannelsView(ViewHelper):
     def get(self):
         return Response.json(db.get_channels())
 
-    def post(self):
-        raise ValueError
-        self._post_to_table('Channels')
+    def put(self, id):
+        self._update_table_field('Channels', id)
+        return Response('ok')
+
+    def delete(self, id):
+        db.remove('Channels', id)
         return Response('ok')
 
 

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
+from subprocess import check_call
 from distutils.core import setup
+
 
 def add_to_lib(*dirs):
     path = os.path.join('.', *dirs)
@@ -12,6 +14,11 @@ def add_to_lib(*dirs):
             files.append(file_path)
     return (target, files)
 
+
+check_call("""
+        sass --scss --no-cache --sourcemap=none --style=compressed
+            --force --stop-on-error --update static/scss/:static/css/
+    """.strip().split())
 
 setup(
     name='telega',
