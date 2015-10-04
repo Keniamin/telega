@@ -1,10 +1,13 @@
 # -*- coding: utf8 -*-
+import re
 import json
+from os import path
 from datetime import datetime, timedelta
 
 from fresco import Route, GET, POST, PUT, DELETE, Response, context
 
 from telega.common import DbManager, config
+from telega.tasks import GetEventsTask
 import telega.classifier as classifier
 
 
@@ -87,7 +90,7 @@ class ViewHelper(object):
         Route('/<id:int>', PUT, 'put'),
         Route('/<id:int>', DELETE, 'delete'),
     ]
-    
+
     def get(self, *args, **kwargs): return Response.method_not_allowed([])
     def post(self, *args, **kwargs): return Response.method_not_allowed([])
     def put(self, *args, **kwargs): return Response.method_not_allowed([])
@@ -147,7 +150,11 @@ class FiltersView(ViewHelper):
         return Response.json(db.get_filters())
 
     def post(self):
-        db.insert('Filters', context.request.get_json())
+        id = db.insert('Filters', context.request.get_json())
+        filter = db.select('Filters', id)
+
+        for event in db.select_all('Events'):
+            classifier.check_filters(event, filters=(filter,))
         return Response('ok')
 
     def put(self, id):
@@ -160,6 +167,7 @@ class FiltersView(ViewHelper):
         return Response('ok')
 
     def delete(self, id):
+        self._unlock_classifier('filter', id)
         db.remove('Filters', id)
         return Response('ok')
 
@@ -179,7 +187,11 @@ class HeuristicsView(ViewHelper):
         return Response.json(db.get_heuristics())
 
     def post(self):
-        db.insert('Heuristics', context.request.get_json())
+        id = db.insert('Heuristics', context.request.get_json())
+        heuristic = db.select('Heuristics', id)
+
+        for event in db.get_events_with_info():
+            classifier.check_heuristics(event, heuristics=(heuristic,))
         return Response('ok')
 
     def put(self, id):
@@ -192,6 +204,7 @@ class HeuristicsView(ViewHelper):
         return Response('ok')
 
     def delete(self, id):
+        self._unlock_classifier('heuristic', id)
         db.remove('Heuristics', id)
         return Response('ok')
 
@@ -210,7 +223,8 @@ class ChannelsView(ViewHelper):
         return Response.json(db.get_channels())
 
     def post(self):
-        db.insert('Channels', context.request.get_json())
+        id = db.insert('Channels', context.request.get_json())
+        GetEventsTask.add_task(id)
         return Response('ok')
 
     def put(self, id):
@@ -219,6 +233,43 @@ class ChannelsView(ViewHelper):
 
     def delete(self, id):
         db.remove('Channels', id)
+        return Response('ok')
+
+
+class LogMonitoring(object):
+    log_file = '/var/log/upstart/telega-worker.log'
+    time_file = '/var/lib/telega/.logmon.time'
+    time_format = '%Y-%m-%d %H:%M:%S'
+    re_logmsg = re.compile(
+        r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})[^\[]*\[[^\]]*\]\s+([^:]+):'
+    )
+    __routes__ = [
+        Route('/', GET, 'get'),
+        Route('/', POST, 'post'),
+    ]
+
+    def get(self):
+        found = 0
+        last_known = None
+        if path.isfile(self.time_file):
+            with open(self.time_file) as tf:
+                last_known = datetime.strptime(tf.read(), self.time_format)
+        if path.isfile(self.log_file):
+            with open(self.log_file) as lf:
+                for line in lf:
+                    match = self.re_logmsg.match(line)
+                    if match and (
+                        match.group(2) == 'WARNING' or
+                        match.group(2) == 'ERROR'
+                    ):
+                        cur = datetime.strptime(match.group(1), self.time_format)
+                        if last_known is None or cur > last_known:
+                            found += 1
+        return Response(str(found))
+
+    def post(self):
+        with open(self.time_file, 'w') as tf:
+            tf.write(datetime.now().strftime(self.time_format))
         return Response('ok')
 
 

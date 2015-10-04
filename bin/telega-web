@@ -63,6 +63,7 @@ def make_app():
             })
             app.include('/api/' + obj.link, obj())
     tabs = sorted(tabs, key=(lambda t: t['_order']))
+    app.include('/api/logmon', telega.views.LogMonitoring())
     app.route('/<page:str>/', GET, base)
     app.route('/', GET, base)
     return app
