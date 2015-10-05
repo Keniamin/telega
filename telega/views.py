@@ -18,15 +18,19 @@ class ViewsDbManager(DbManager):
             return cursor.fetchall()
 
     def _get_timed_events(self, begin, end, state):
-        return list(self._query("""
+        def _add_events_fields(obj):
+            obj['_link_target'] = '/{}s/?hl={}'.format(state, obj['reason'])
+            obj['_class'] = 'event-' + state
+            return obj
+
+        return map(_add_events_fields, self._query("""
             SELECT
                 e.id,
                 e.title,
                 TIME_FORMAT(e.begin, '%%k:%%i') AS begin,
                 TIME_FORMAT(e.end, '%%k:%%i') AS end,
                 CONCAT(c.name, ' (', c.button, ')') AS channel,
-                IFNULL(e.filter_id, e.heuristic_id) AS reason,
-                CONCAT('event-', e.state) AS _class
+                IFNULL(e.filter_id, e.heuristic_id) AS reason
             FROM
                 Events AS e LEFT JOIN Channels AS c
                 ON e.channel_id = c.id
@@ -116,7 +120,7 @@ class EventsViewHelper(ViewHelper):
         {'name': 'begin', 'title': 'Начало', 'class': 'text-center'},
         {'name': 'end', 'title': 'Окончание', 'class': 'text-center'},
         {'name': 'channel', 'title': 'Канал', 'class': 'text-right'},
-        {'name': 'reason', 'title': 'Критерий', 'class': 'text-center'},
+        {'name': 'reason', 'title': 'Критерий', 'class': 'text-center', 'link': True},
     ]
 
     def get(self):
