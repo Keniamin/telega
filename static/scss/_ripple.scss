@@ -1,4 +1,4 @@
-@keyframes ripple {
+@mixin ripple-animation {
     0% {
         top: 50%;
         left: 50%;
@@ -20,6 +20,12 @@
         height: 88%;
         opacity: 0;
     }
+}
+@keyframes ripple {
+    @include ripple-animation
+}
+@-webkit-keyframes ripple {
+    @include ripple-animation
 }
 
 @mixin ripple($size, $period, $color1, $color2) {

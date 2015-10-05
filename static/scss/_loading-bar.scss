@@ -1,6 +1,12 @@
-@keyframes load {
+@mixin load-animation {
     0% { left: -18.75%; }
     100% { left: -6.25%; }
+}
+@-webkit-keyframes load {
+    @include load-animation
+}
+@keyframes load {
+    @include load-animation
 }
 
 @mixin loading-bar($size, $period, $color) {

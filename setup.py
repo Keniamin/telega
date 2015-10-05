@@ -21,7 +21,7 @@ check_call("""
             --force --stop-on-error --update static/scss/:static/css/
     """.strip().split())
 print 'Changing right of css to 644...'
-check_call('chmod 644 static/css/*'.strip().split())
+check_call('chmod 644 static/css/*', shell=True)
 
 setup(
     name='telega',
