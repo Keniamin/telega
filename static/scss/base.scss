@@ -79,6 +79,7 @@ div.menu {
         div.title {
             position: relative;
             top: -0.23333em;
+            -webkit-transform: rotateZ(-7deg);
             transform: rotateZ(-7deg);
         }
     }

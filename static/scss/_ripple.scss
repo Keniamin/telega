@@ -39,6 +39,7 @@
         border: black solid ($size / 10);
         content: '';
         opacity: 0;
+        -webkit-animation: ripple $period ease-out infinite;
         animation: ripple $period ease-out infinite;
     }
     &:before {
@@ -46,6 +47,7 @@
     }
     &:after {
         border-color: $color2;
+        -webkit-animation-delay: ($period / 2);
         animation-delay: ($period / 2);
     }
 }

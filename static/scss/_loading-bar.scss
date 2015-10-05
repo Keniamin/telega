@@ -24,7 +24,9 @@
             transparent 10%
         );
         content: '';
+        -webkit-transform: skewX(-30deg);
         transform: skewX(-30deg);
+        -webkit-animation: load $period infinite linear;
         animation: load $period infinite linear;
     }
 }
