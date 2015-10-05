@@ -22,6 +22,12 @@
     <div ng-repeat="tab in tabs.tabs" class="tab current-{{ tab._current }}">
       <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
     </div>
+    <div ng-controller="LogmonController as logmon" class="logmon text-center">
+      <div ng-if="logmon.count">
+        Непрочитанных уведомлений в логах: {{ logmon.count }}!
+        <button class="btn btn-default" type="button" ng-click="logmon.resetTime()">Сброс</button>
+      </div>
+    </div>
   </div>
   <div ng-controller="TableController as table">
     <table class="data-table table-striped">

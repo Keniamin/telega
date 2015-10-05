@@ -16,6 +16,33 @@ angular.module('telega', [])
         tab._current = (tab.link == path);
     });
 })
+.controller('LogmonController', function ($http, $log) {
+    /* Init. */
+    var self = this;
+    self.count = 0;
+    self.apiPath = '/api/logmon/';
+
+    $http.get(self.apiPath).then(
+        function (response) {
+            self.count = +response.data;
+        },
+        function (response) {
+            noticeApiError($log, self.apiPath, response);
+        }
+    );
+
+    /* Functions. */
+    self.resetTime = function () {
+        $http.post(self.apiPath).then(
+            function(response) {
+                self.count = 0;
+            },
+            function(response) {
+                noticeApiError($log, self.apiPath, response);
+            }
+        );
+    };
+})
 .controller('TableController', function ($http, $log) {
     /* Init. */
     var self = this;

@@ -97,6 +97,23 @@ div.menu {
             text-decoration: none;
         }
     }
+    div.logmon {
+        position: absolute;
+        left: 1em;
+        right: 1em;
+        bottom: 0.75em;
+
+        div {
+            border-radius: 1em;
+            box-shadow: 0 0 1em 0 red;
+            padding: 0.5em;
+            background-color: #DDD;
+
+            button {
+                margin-top: 0.5em;
+            }
+        }
+    }
 }
 table.data-table {
     width: 100%;
@@ -118,6 +135,12 @@ table.data-table {
     }
     tr.highlighted {
         background-color: #DEF;
+    }
+    tr.event-filter td {
+        background-color: rgba(238, 255, 221, 0.25);
+    }
+    tr.event-heuristic td {
+        background-color: rgba(255, 238, 221, 0.25);
     }
     tr:not(:hover) .deleter {
         display: none;
