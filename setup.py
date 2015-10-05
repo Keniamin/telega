@@ -15,10 +15,13 @@ def add_to_lib(*dirs):
     return (target, files)
 
 
+print 'Compiling scss...'
 check_call("""
         sass --scss --no-cache --sourcemap=none --style=compressed
             --force --stop-on-error --update static/scss/:static/css/
     """.strip().split())
+print 'Changing right of css to 644...'
+check_call('chmod 644 static/css/*'.strip().split())
 
 setup(
     name='telega',
