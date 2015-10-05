@@ -44,7 +44,7 @@
           <span ng-hide="row[column.name].edit">
             <span ng-if="!column.link" ng-bind="row[column.name].value"></span>
             <a ng-if="column.link" href="{{ row._link_target }}" ng-bind="row[column.name].value"></a>
-          <span>
+          </span>
           <span ng-if="column.editable" ng-show="row[column.name].sending && !row[column.name].edit" class="ripple"></span>
           <form name="cellForm" ng-if="column.editable" ng-show="row[column.name].edit" ng-submit="table.applyChanges(cellForm, column, row)" novalidate>
             <input ng-model="row[column.name].value" ng-pattern="column.pattern" ng-keydown="table.catchEscape($event, column, row)">
