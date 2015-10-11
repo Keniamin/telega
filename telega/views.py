@@ -220,7 +220,7 @@ class ChannelsView(ViewHelper):
     columns = [
         {'name': 'name', 'title': 'Название'},
         {'name': 'button', 'title': 'Канал', 'class': 'text-center', 'editable': True, 'pattern': '[0-9]+', 'hint': 'число'},
-        {'name': 'link', 'title': 'Указатель', 'class': 'text-right', 'editable': True, 'pattern': '[-+a-z0-9._]+', 'hint': 'ссылка канала на s-tv.ru'},
+        {'name': 'link', 'title': 'Указатель', 'class': 'text-right', 'editable': True, 'pattern': '[-+a-z0-9&._]+', 'hint': 'ссылка канала на s-tv.ru'},
     ]
 
     def get(self):
