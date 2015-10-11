@@ -17,6 +17,37 @@ re_field_genre = _make_field_re(u'Жанр')
 re_field_year = _make_field_re(u'Год')
 
 
+def get_events(channel_link, for_date):
+    url = 'http://www.s-tv.ru/tv/{}/{}/'.format(channel_link, for_date)
+    response = _make_request(url)
+    if response is None:
+        raise InterruptTask
+
+    prev_hour = 0
+    for event in re.finditer(re_prg_item, response.read().decode('utf8')):
+        time, for_date, prev_hour = \
+            _make_time(event.group(1), for_date, prev_hour)
+        yield {
+            'begin': time,
+            'link': event.group(2),
+            'title': _clean_title(event.group(3)),
+        }
+
+def get_event_info(event_link):
+    event_link = event_link.replace('ab', '')
+    url = 'http://www.s-tv.ru/tv/ajaxinfo/{}/0/'.format(event_link)
+    response = _make_request(url)
+    if response is None:
+        raise InterruptTask
+
+    info = response.read().decode('utf8')
+    return dict(
+        type = re.search(re_event_type, info).group(1),
+        genre = _search_for_field(info, re_field_genre),
+        country = _search_for_field(info, re_field_country),
+        year = _search_for_field(info, re_field_year),
+    )
+
 def _make_request(url):
     try:
         request = Request(url, headers={
@@ -53,35 +84,3 @@ def _search_for_field(info, re_field):
     if found is None:
         return ''
     return re.sub(ur'</?[^>]+>', '', found.group(1)).strip()
-
-
-def get_events(channel_link, for_date):
-    url = 'http://www.s-tv.ru/tv/{}/{}/'.format(channel_link, for_date)
-    response = _make_request(url)
-    if response is None:
-        raise InterruptTask
-
-    prev_hour = 0
-    for event in re.finditer(re_prg_item, response.read().decode('utf8')):
-        time, for_date, prev_hour = \
-            _make_time(event.group(1), for_date, prev_hour)
-        yield {
-            'begin': time,
-            'link': event.group(2),
-            'title': _clean_title(event.group(3)),
-        }
-
-def get_event_info(event_link):
-    event_link = event_link.replace('ab', '')
-    url = 'http://www.s-tv.ru/tv/ajaxinfo/{}/0/'.format(event_link)
-    response = _make_request(url)
-    if response is None:
-        raise InterruptTask
-
-    info = response.read().decode('utf8')
-    return dict(
-        type = re.search(re_event_type, info).group(1),
-        genre = _search_for_field(info, re_field_genre),
-        country = _search_for_field(info, re_field_country),
-        year = _search_for_field(info, re_field_year),
-    )

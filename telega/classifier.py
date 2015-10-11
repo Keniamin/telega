@@ -23,49 +23,13 @@ class FiltersDbManager(DbManager):
                 """, (state, filter, heuristic, event))
 
 
-def _match_heuristic(info, heuristic):
-    try:
-        if (
-            heuristic['type'] and
-            (heuristic['type'].lower() not in info['type'].lower())
-        ):
-            return False
-        if (
-            heuristic['genre'] and
-            (heuristic['genre'].lower() not in info['genre'].lower())
-        ):
-            return False
-        if (
-            heuristic['country'] and
-            (heuristic['country'].lower() not in info['country'].lower())
-        ):
-            return False
-        if heuristic['year']:
-            h_beg, h_end = (heuristic['year'] + '-').split('-')[:2]
-            if not h_end:
-                h_end = h_beg
-            i_beg, i_end = (info['year'] + '-').split('-')[:2]
-            if not i_beg:
-                i_beg = '0'
-            if not i_end:
-                i_end = i_beg
-            if (int(i_end) < int(h_beg)) or (int(i_beg) > int(h_end)):
-                return False
-        return True
-    except Exception as exc:
-        logging.warning(
-            'Exception checking id %s by heuristic %s: %s',
-            info['id'], heuristic['id'], exc
-        )
-        return False
-
 def check_filters(event, filters=None):
     if event.get('state') == 'filter':
         return True
     if filters is None:
         filters = db.select_all('Filters')
     for filter in filters:
-        if filter['title'].lower() in event['title'].lower():
+        if _normalize(filter['title']) in _normalize(event['title']):
             db.reset_event_state(event['id'], filter=filter['id'])
             return True
     return False
@@ -87,5 +51,44 @@ def check_heuristics(info, event=None, heuristics=None):
 
 def clear_state(event):
     db.reset_event_state(event['id'])
+
+def _normalize(text):
+    return text.lower().replace('ё', 'е')
+
+def _match_heuristic(info, heuristic):
+    try:
+        if (
+            heuristic['type'] and
+            (_normalize(heuristic['type']) not in _normalize(info['type']))
+        ):
+            return False
+        if (
+            heuristic['genre'] and
+            (_normalize(heuristic['genre']) not in _normalize(info['genre']))
+        ):
+            return False
+        if (
+            heuristic['country'] and
+            (_normalize(heuristic['country']) not in _normalize(info['country']))
+        ):
+            return False
+        if heuristic['year']:
+            h_beg, h_end = (heuristic['year'] + '-').split('-')[:2]
+            if not h_end:
+                h_end = h_beg
+            i_beg, i_end = (info['year'] + '-').split('-')[:2]
+            if not i_beg:
+                i_beg = '0'
+            if not i_end:
+                i_end = i_beg
+            if (int(i_end) < int(h_beg)) or (int(i_beg) > int(h_end)):
+                return False
+        return True
+    except Exception as exc:
+        logging.warning(
+            'Exception checking id %s by heuristic %s: %s',
+            info['id'], heuristic['id'], exc
+        )
+        return False
 
 db = FiltersDbManager()

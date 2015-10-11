@@ -12,34 +12,6 @@ import telega.classifier as classifier
 
 
 class ViewsDbManager(DbManager):
-    def _query(self, query, args=None):
-        with self.cursor() as cursor:
-            cursor.execute(query, args)
-            return cursor.fetchall()
-
-    def _get_timed_events(self, begin, end, state):
-        def _add_events_fields(obj):
-            obj['_link_target'] = '/{}s/?hl={}'.format(state, obj['reason'])
-            obj['_class'] = 'event-' + state
-            return obj
-
-        return map(_add_events_fields, self._query("""
-            SELECT
-                e.id,
-                e.title,
-                TIME_FORMAT(e.begin, '%%k:%%i') AS begin,
-                TIME_FORMAT(e.end, '%%k:%%i') AS end,
-                CONCAT(c.name, ' (', c.button, ')') AS channel,
-                IFNULL(e.filter_id, e.heuristic_id) AS reason
-            FROM
-                Events AS e LEFT JOIN Channels AS c
-                ON e.channel_id = c.id
-            WHERE e.state = %s
-              AND e.begin <= %s
-              AND e.end > %s
-            ORDER BY e.begin
-        """, (state, end, begin)))
-
     def get_current_events(self, state):
         begin = datetime.now()
         end = begin + timedelta(minutes=config['current_since_minutes'])
@@ -85,6 +57,34 @@ class ViewsDbManager(DbManager):
             Events AS e LEFT JOIN EventInfo AS ei
             ON ei.event_id = e.id
         """)
+
+    def _query(self, query, args=None):
+        with self.cursor() as cursor:
+            cursor.execute(query, args)
+            return cursor.fetchall()
+
+    def _get_timed_events(self, begin, end, state):
+        def _add_events_fields(obj):
+            obj['_link_target'] = '/{}s/?hl={}'.format(state, obj['reason'])
+            obj['_class'] = 'event-' + state
+            return obj
+
+        return map(_add_events_fields, self._query("""
+            SELECT
+                e.id,
+                e.title,
+                TIME_FORMAT(e.begin, '%%k:%%i') AS begin,
+                TIME_FORMAT(e.end, '%%k:%%i') AS end,
+                CONCAT(c.name, ' (', c.button, ')') AS channel,
+                IFNULL(e.filter_id, e.heuristic_id) AS reason
+            FROM
+                Events AS e LEFT JOIN Channels AS c
+                ON e.channel_id = c.id
+            WHERE e.state = %s
+              AND e.begin <= %s
+              AND e.end > %s
+            ORDER BY e.begin
+        """, (state, end, begin)))
 
 
 class ViewHelper(object):
@@ -228,7 +228,8 @@ class ChannelsView(ViewHelper):
 
     def post(self):
         id = db.insert('Channels', context.request.get_json())
-        GetEventsTask.add_task(id)
+        GetEventsTask.add_task(id) ## today
+        GetEventsTask.add_task(id) ## tomorrow
         return Response('ok')
 
     def put(self, id):
