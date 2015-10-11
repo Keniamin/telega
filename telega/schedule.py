@@ -42,7 +42,7 @@ def get_event_info(event_link):
 
     info = response.read().decode('utf8')
     return dict(
-        type = re.search(re_event_type, info).group(1),
+        type = _search_for_field(info, re_event_type),
         genre = _search_for_field(info, re_field_genre),
         country = _search_for_field(info, re_field_country),
         year = _search_for_field(info, re_field_year),

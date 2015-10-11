@@ -54,7 +54,7 @@ class ViewsDbManager(DbManager):
 
     def get_events_with_info(self):
         return self.select_all("""
-            Events AS e LEFT JOIN EventInfo AS ei
+            Events AS e JOIN EventInfo AS ei
             ON ei.event_id = e.id
         """)
 

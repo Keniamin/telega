@@ -53,7 +53,8 @@ def clear_state(event):
     db.reset_event_state(event['id'])
 
 def _normalize(text):
-    return text.lower().replace('ё', 'е')
+    ## Текст на русском для нормального определения кодировки
+    return text.lower().replace(u'ё', u'е')
 
 def _match_heuristic(info, heuristic):
     try:
