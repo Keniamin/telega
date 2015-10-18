@@ -29,7 +29,7 @@ input {
     label & {
         font-weight: normal;
     }
-    &.ng-invalid{
+    &.ng-invalid {
         outline-color: #E88;
         border-color: #E88;
     }
@@ -83,19 +83,19 @@ div.menu {
             transform: rotateZ(-7deg);
         }
     }
-    div.tab {
+    div.tab a {
+        display: block;
         padding: 0.33333em 1em 0.33333em 1.33333em;
         color: white;
+        text-decoration: none;
         font-size: 1.5em;
         cursor: pointer;
 
-        &.current-true { color: yellow; }
+        &.current-true {
+            color: yellow;
+        }
         &:hover {
             text-shadow: 0 0 0.46em yellow;
-        }
-        a {
-            color: inherit;
-            text-decoration: none;
         }
     }
     div.logmon {

@@ -19,8 +19,8 @@
       <img src="/static/img/telega.png">
       <div class="title">ТелеГА</div>
     </div>
-    <div ng-repeat="tab in tabs.tabs" class="tab current-{{ tab._current }}">
-      <a href="/{{ tab.link }}/" ng-bind="tab.name"></a>
+    <div ng-repeat="tab in tabs.tabs" class="tab">
+      <a href="/{{ tab.link }}/" class="current-{{ tab._current }}" ng-bind="tab.name"></a>
     </div>
     <div ng-controller="LogmonController as logmon" class="logmon text-center">
       <div ng-if="logmon.count">
