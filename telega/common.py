@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pymysql
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(funcName)15s] %(levelname)s:\t%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(funcName)15s] %(levelname)-8s %(message)s')
 config = yaml.load(open('/etc/telega.conf', 'r').read())
 
 
