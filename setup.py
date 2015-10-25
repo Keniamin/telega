@@ -34,6 +34,7 @@ setup(
     packages=['telega'],
     scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
+        ('/var/log/telega', []),
         ('/etc/nginx/sites-enabled', ['etc/nginx/telega']),
         ('/etc/logrotate.d', ['etc/logrotate/telega']),
         ('/etc/init', [
