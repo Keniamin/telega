@@ -242,7 +242,7 @@ class ChannelsView(ViewHelper):
 
 
 class LogMonitoring(object):
-    log_file = '/var/log/upstart/telega-worker.log'
+    log_files = ['/var/log/telega/worker.log', '/var/log/telega/worker.log.1']
     time_file = '/var/lib/telega/.logmon.time'
     time_format = '%Y-%m-%d %H:%M:%S'
     re_logmsg = re.compile(
@@ -259,17 +259,18 @@ class LogMonitoring(object):
         if path.isfile(self.time_file):
             with open(self.time_file) as tf:
                 last_known = datetime.strptime(tf.read(), self.time_format)
-        if path.isfile(self.log_file):
-            with open(self.log_file) as lf:
-                for line in lf:
-                    match = self.re_logmsg.match(line)
-                    if match and (
-                        match.group(2) == 'WARNING' or
-                        match.group(2) == 'ERROR'
-                    ):
-                        cur = datetime.strptime(match.group(1), self.time_format)
-                        if last_known is None or cur > last_known:
-                            found += 1
+        for log in self.log_files:
+            if path.isfile(log):
+                with open(log) as lf:
+                    for line in lf:
+                        match = self.re_logmsg.match(line)
+                        if match and (
+                            match.group(2) == 'WARNING' or
+                            match.group(2) == 'ERROR'
+                        ):
+                            cur = datetime.strptime(match.group(1), self.time_format)
+                            if last_known is None or cur > last_known:
+                                found += 1
         return Response(str(found))
 
     def post(self):

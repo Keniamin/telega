@@ -1,0 +1,9 @@
+/var/log/telega/web.log {
+	missingok
+}
+
+/var/log/telega/worker.log {
+	weekly
+	missingok
+	delaycompress
+}
