@@ -246,7 +246,7 @@ class LogMonitoring(object):
     time_file = '/var/lib/telega/.logmon.time'
     time_format = '%Y-%m-%d %H:%M:%S'
     re_logmsg = re.compile(
-        r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})([.,]\d+)?\s+\[[^\]]*\]\s+(\S+)\s'
+        r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:[.,]\d+)?\s+\[[^\]]*\]\s+(\S+)\s'
     )
     __routes__ = [
         Route('/', GET, 'get'),
