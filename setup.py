@@ -32,6 +32,7 @@ setup(
     author_email='inngoncharov@yandex.ru',
 
     packages=['telega'],
+    install_requires=['fresco', 'pyyaml', 'pymysql'],
     scripts=['bin/telega-worker', 'bin/telega-web'],
     data_files=[
         ('/var/log/telega', []),
