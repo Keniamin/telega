@@ -48,8 +48,14 @@ def main():
 
             may_sleep = task['time'] - datetime.utcnow()
             if may_sleep.total_seconds() > 1:
-                may_sleep = min(int(may_sleep.total_seconds()), MAX_TASK_SLEEP)
-                logging.info('Sleeping %d seconds waiting for the next task', may_sleep)
+                may_sleep = min(
+                    int(may_sleep.total_seconds()),
+                    MAX_TASK_SLEEP
+                )
+                logging.info(
+                    'Sleeping %d seconds waiting for the next task',
+                    may_sleep
+                )
                 sleep(may_sleep)
                 continue
 

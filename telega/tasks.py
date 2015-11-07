@@ -86,18 +86,21 @@ class Task(object):
     target_table = None
 
     @classmethod
-    def add_task(cls, target=None, later_than=None):
-        last_task_time = db.get_last_task_time(cls.__name__)
-        if last_task_time:
-            last_task_time += timedelta(
-                seconds=randint(cls.delay[0], cls.delay[1])
-            )
-        constraints = [
-            later_than,
-            last_task_time,
-            datetime.utcnow(),
-        ]
-        new_task_time = max(time for time in constraints if time)
+    def add_task(cls, target=None, later_than=None, force_now=False):
+        if force_now:
+            new_task_time = datetime.utcnow()
+        else:
+            last_task_time = db.get_last_task_time(cls.__name__)
+            if last_task_time:
+                last_task_time += timedelta(
+                    seconds=randint(cls.delay[0], cls.delay[1])
+                )
+            constraints = [
+                later_than,
+                last_task_time,
+                datetime.utcnow(),
+            ]
+            new_task_time = max(time for time in constraints if time)
         db.add_task(cls.__name__, new_task_time, target)
 
     @classmethod
