@@ -154,28 +154,34 @@ class GetEventsTask(Task):
 
 
 class DailyTask(Task):
-    @classmethod
-    def _next_task_time(cls, hour):
+    @staticmethod
+    def _next_task_time(hour):
         now = datetime.now(tz=pytz.timezone("Europe/Moscow"))
         next_time = (now + timedelta(days=1)).replace(
             hour=hour, minute=0, second=0, microsecond=0
         )
         return next_time.astimezone(pytz.utc).replace(tzinfo=None)
 
+    @classmethod
+    def _plan_next_task(cls, hour):
+        next_time = cls._next_task_time(hour)
+        if db.get_last_task_time(cls.__name__) < next_time:
+            cls.add_task(later_than=next_time)
+
 
 class ScheduleGettersTask(DailyTask):
     @classmethod
-    def run_task(cls, target):
+    def run_task(cls, _):
         for ch in db.select_all('Channels'):
             GetEventsTask.add_task(ch['id'])
-        ScheduleGettersTask.add_task(later_than=cls._next_task_time(hour=11))
+        cls._plan_next_task(hour=11)
 
 
 class RemoveOldEventsTask(DailyTask):
     @classmethod
-    def run_task(cls, target):
+    def run_task(cls, _):
         db.remove_old_events()
-        RemoveOldEventsTask.add_task(later_than=cls._next_task_time(hour=4))
+        cls._plan_next_task(hour=4)
 
 
 db = TaskDbManager()

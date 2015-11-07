@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 import logging
 from time import sleep
+from signal import signal, SIGTERM
 from datetime import datetime, timedelta
 
 import telega.tasks as tasks
@@ -11,16 +12,22 @@ ERROR_SLEEP = 10
 MAX_ERROR_SLEEP = 120
 MAX_TASK_SLEEP = 60
 
-config = tasks.config
 db = tasks.db
+config = tasks.config
+terminated = False
 
+
+def sigterm_handler(_signal, _frame):
+    global terminated
+    terminated = True
 
 def processed(task):
     db.remove('Tasks', task['id'])
 
 def main():
     time_to_sleep = 0
-    while True:
+    global terminated
+    while not terminated:
         try:
             if time_to_sleep > 0:
                time_to_sleep -= ERROR_SLEEP
@@ -42,7 +49,7 @@ def main():
             may_sleep = task['time'] - datetime.utcnow()
             if may_sleep.total_seconds() > 1:
                 may_sleep = min(int(may_sleep.total_seconds()), MAX_TASK_SLEEP)
-                logging.info('Sleeping %s seconds waiting for the next task', may_sleep)
+                logging.info('Sleeping %d seconds waiting for the next task', may_sleep)
                 sleep(may_sleep)
                 continue
 
@@ -67,6 +74,8 @@ def main():
             if time_to_sleep < MAX_ERROR_SLEEP:
                time_to_sleep += 2*ERROR_SLEEP
             sleep(time_to_sleep)
+    logging.info('Killed by SIGTERM')
 
 if __name__ == "__main__":
+    signal(SIGTERM, sigterm_handler)
     main()
