@@ -2,6 +2,7 @@
 import re
 import json
 from os import path
+from functools import wraps
 from datetime import datetime, timedelta
 
 from fresco import Route, GET, POST, PUT, DELETE, Response, context
@@ -9,6 +10,13 @@ from fresco import Route, GET, POST, PUT, DELETE, Response, context
 from telega.common import DbManager, config
 from telega.tasks import GetEventsTask
 import telega.classifier as classifier
+
+
+def cache_control(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs).add_header('Cache-Control', 'max-age=60, private')
+    return wrapper
 
 
 class ViewsDbManager(DbManager):
@@ -125,7 +133,9 @@ class EventsViewHelper(ViewHelper):
 
     def get(self):
         getter = getattr(db, self.events_getter)
-        return Response.json(getter('filter') + getter('heuristic'))
+        return Response.json(getter('filter') + getter('heuristic')).add_header(
+            'Cache-Control', 'max-age={}, private'.format(self.max_cache_age)
+        )
 
 
 class CurrentEventsView(EventsViewHelper):
@@ -133,6 +143,7 @@ class CurrentEventsView(EventsViewHelper):
     name = 'Текущие'
     link = 'current'
     events_getter = 'get_current_events'
+    max_cache_age = 60
 
 
 class TodayEventsView(EventsViewHelper):
@@ -140,6 +151,7 @@ class TodayEventsView(EventsViewHelper):
     name = 'Сегодня'
     link = 'today'
     events_getter = 'get_today_events'
+    max_cache_age = 3600
 
 
 class FiltersView(ViewHelper):
@@ -150,6 +162,7 @@ class FiltersView(ViewHelper):
         {'name': 'title', 'title': 'Название', 'editable': True},
     ]
 
+    @cache_control
     def get(self):
         return Response.json(db.get_filters())
 
@@ -187,6 +200,7 @@ class HeuristicsView(ViewHelper):
         {'name': 'year', 'title': 'Годы', 'class': 'text-right', 'editable': True, 'pattern': '(19[0-9][0-9]|20[0-9][0-9])(-(19[0-9][0-9]|20[0-9][0-9]))?', 'hint': 'год или интервал, года с 1900 по 2099'},
     ]
 
+    @cache_control
     def get(self):
         return Response.json(db.get_heuristics())
 
@@ -223,6 +237,7 @@ class ChannelsView(ViewHelper):
         {'name': 'link', 'title': 'Указатель', 'class': 'text-right', 'editable': True, 'pattern': '[-+a-z0-9&._]+', 'hint': 'ссылка канала на s-tv.ru'},
     ]
 
+    @cache_control
     def get(self):
         return Response.json(db.get_channels())
 
@@ -253,6 +268,7 @@ class LogMonitoring(object):
         Route('/', POST, 'post'),
     ]
 
+    @cache_control
     def get(self):
         found = 0
         last_known = None
