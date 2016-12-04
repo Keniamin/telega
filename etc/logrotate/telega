@@ -1,16 +1,16 @@
 /var/log/telega/web.log {
-	nocreate
-	missingok
+    nocreate
+    missingok
     postrotate
         restart telega-web
     endscript
 }
 
 /var/log/telega/worker.log {
-	weekly
+    weekly
     nocreate
-	missingok
-	delaycompress
+    missingok
+    delaycompress
     postrotate
         restart telega-worker
     endscript
