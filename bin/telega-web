@@ -5,6 +5,7 @@ import os
 import site
 import json
 import logging
+import traceback
 
 from wsgiref.simple_server import make_server
 from fresco import FrescoApp, GET, Response, context
@@ -18,8 +19,10 @@ tabs = []
 files_cache = {}
 
 
-def log_error(request, exc):
+def log_error(request, exc_info):
+    _, exc, traceback = exc_info
     logging.warning('Exception occured: %s', exc)
+    logging.warning('%s', '\n'.join(traceback.format_tb(traceback)))
     return Response.internal_server_error()
 
 
