@@ -5,6 +5,7 @@ import yaml
 import fcntl
 import errno
 import logging
+import logging.handlers
 from datetime import datetime
 
 import pymysql
@@ -84,10 +85,10 @@ class DbManager(object):
 
 
 def init_logging(filename):
-    hnd = logging.TimedRotatingFileHandler(filename, when='W0', backupCount=4, utc=True)
+    hnd = logging.handlers.TimedRotatingFileHandler(filename, when='W0', backupCount=4, utc=True)
     frm = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
     hnd.setFormatter(frm)
-    log = logging.getRootLogger()
+    log = logging.getLogger()
     log.setLevel(logging.INFO)
     log.addHandler(hnd)
 

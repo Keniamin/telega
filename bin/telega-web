@@ -39,6 +39,7 @@ def base(page=None):
             columns = tab['_object'].columns
             break
     else:
+        logging.warning('Requested page %s not found', page)
         return Response.not_found()
 
     page_info = {
@@ -51,13 +52,18 @@ def base(page=None):
     if context.request.form.get('hl'):
         page_info['hl'] = context.request.form.get('hl')
 
+    logging.info('Rendering page %s', page)
     template = load_cached_file('templates/base.html')
     return Response(template.replace('PAGE_INFO_PLACEHOLDER', json.dumps(page_info)))
 
 
 def static():
-    logging.info('Requested %s', context.request.path)
-    return Response(load_cached_file(context.request.path))
+    logging.info('Requested static resource: %s', context.request.path)
+    try:
+        return Response(load_cached_file(context.request.path[1:]))
+    except IOError as err:
+        logging.warning('Error getting resource: %s', err)
+        return Response.not_found()
 
 
 def make_app():
@@ -76,7 +82,7 @@ def make_app():
     tabs.sort(key=(lambda t: t['_order']))
 
     app.include('/api/logmon', telega.views.LogMonitoring())
-    app.route('/static/', GET, static)
+    app.route_all('/static/', GET, static)
     app.route('/<page:str>/', GET, base)
     app.route('/', GET, base)
     return app
