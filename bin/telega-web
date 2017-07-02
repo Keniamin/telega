@@ -19,6 +19,7 @@ files_cache = {}
 
 
 def log_error(request, exc):
+    logging.warning('Exception occured: %s', exc)
     return Response.internal_server_error()
 
 
