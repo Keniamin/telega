@@ -9,9 +9,9 @@ import logging
 from wsgiref.simple_server import make_server
 from fresco import FrescoApp, GET, Response, context
 
-site.addsitedir(os.path.dirname(os.path.abspath(__file__)))
+site.addsitedir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from telega.common import config
+from telega.common import config, init_logging, get_lock
 import telega.views
 
 tabs = []

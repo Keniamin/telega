@@ -8,10 +8,10 @@ from time import sleep
 from signal import signal, SIGTERM
 from datetime import datetime, timedelta
 
-site.addsitedir(os.path.dirname(os.path.abspath(__file__)))
+site.addsitedir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import telega.tasks as tasks
-from telega.common import InterruptTask, get_lock, init_logging
+from telega.common import InterruptTask, init_logging, get_lock
 
 ERROR_SLEEP = 10
 MAX_ERROR_SLEEP = 120
