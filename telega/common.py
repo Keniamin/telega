@@ -1,15 +1,21 @@
 # -*- coding: utf8 -*-
+
+import os
 import yaml
+import fcntl
+import errno
 import logging
 from datetime import datetime
 
 import pymysql
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(funcName)15s] %(levelname)-8s %(message)s')
-config = yaml.load(open('/etc/telega.conf', 'r').read())
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_FORMAT='%(asctime)s %(process)-6d [%(funcName)16.16s] %(levelname)-8s %(message)s'
+DATE_FORMAT='%Y/%m/%d %H:%M:%S'
 
 
-class InterruptTask(Exception): pass
+class InterruptTask(Exception):
+    pass
 
 
 class DbManager(object):
@@ -75,3 +81,34 @@ class DbManager(object):
                     DELETE FROM {}
                     WHERE id = %s
                 """.format(table), id)
+
+
+def init_logging(filename):
+    hnd = logging.TimedRotatingFileHandler(filename, when='W0', backupCount=4, utc=True)
+    frm = logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
+    hnd.setFormatter(frm)
+    log = logging.getRootLogger()
+    log.setLevel(logging.INFO)
+    log.addHandler(hnd)
+
+
+def load_config(filename):
+    with open(filename) as config_file:
+        config = yaml.load(config_file.read())
+    return config
+
+
+def get_lock(name):
+    filename = '.{}.lock'.format(name)
+    try:
+        fd = os.open(filename, os.O_CREAT)
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except IOError as err:
+        if err.errno in (errno.EACCES, errno.EAGAIN):
+            return False
+        raise
+
+
+os.chdir(BASE_DIR)
+config = load_config('telega.conf')

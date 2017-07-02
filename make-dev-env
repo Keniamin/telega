@@ -1,9 +1,0 @@
-pip install --upgrade .
-( cd bin/; /root/make-links.sh /usr/bin/ telega-*; )
-( cd telega/; /root/make-links.sh /lib/python2.7/site-packages/telega/ *.py; )
-( cd static/css; /root/make-links.sh /var/lib/telega/static/css/ base.css; )
-( cd static/js; /root/make-links.sh /var/lib/telega/static/js/ *.js; )
-( cd templates/; /root/make-links.sh /var/lib/telega/templates/ *.html; )
-restart telega-worker
-restart telega-web
-restart nginx

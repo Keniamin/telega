@@ -1,27 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+
+import os
+import site
 import json
 import logging
-from wsgiref.simple_server import make_server
 
+from wsgiref.simple_server import make_server
 from fresco import FrescoApp, GET, Response, context
+
+site.addsitedir(os.path.dirname(os.path.abspath(__file__)))
 
 from telega.common import config
 import telega.views
 
 tabs = []
-template = None
+files_cache = {}
 
 
 def log_error(request, exc):
     return Response.internal_server_error()
 
 
+def load_cached_file(path):
+    if path not in files_cache:
+        with open(path) as file:
+            files_cache[path] = file.read()
+    return files_cache[path]
+
+
 def base(page=None):
     if not page:
         return Response.redirect('/current/')
 
-    global tabs
     columns = None
     for tab in tabs:
         if tab['link'] == page:
@@ -40,19 +51,19 @@ def base(page=None):
     if context.request.form.get('hl'):
         page_info['hl'] = context.request.form.get('hl')
 
-    global template
-    if template is None:
-        with open('/var/lib/telega/templates/base.html') as template_file:
-            template = template_file.read()
-    return Response(
-        template.replace('PAGE_INFO_PLACEHOLDER', json.dumps(page_info))
-    )
+    template = load_cached_file('templates/base.html')
+    return Response(template.replace('PAGE_INFO_PLACEHOLDER', json.dumps(page_info)))
+
+
+def static():
+    logging.info('Requested %s', context.request.path)
+    return Response(load_cached_file(context.request.path))
 
 
 def make_app():
-    global tabs
     app = FrescoApp()
     app.process_exception(log_error)
+
     for name, obj in telega.views.__dict__.iteritems():
         if name.endswith('View'):
             tabs.append({
@@ -62,12 +73,24 @@ def make_app():
                 '_object': obj,
             })
             app.include('/api/' + obj.link, obj())
-    tabs = sorted(tabs, key=(lambda t: t['_order']))
+    tabs.sort(key=(lambda t: t['_order']))
+
     app.include('/api/logmon', telega.views.LogMonitoring())
+    app.route('/static/', GET, static)
     app.route('/<page:str>/', GET, base)
     app.route('/', GET, base)
     return app
 
 
+def main():
+    init_logging('logs/web.log')
+    if not get_lock('web'):
+        logging.info('Lock aquired by other process, exit')
+        return
+
+    app = make_app()
+    server = make_server('localhost', config['web']['port'], app)
+    server.serve_forever()
+
 if __name__ == '__main__':
-    make_server('localhost', config['web']['port'], make_app()).serve_forever()
+    main()

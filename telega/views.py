@@ -1,13 +1,13 @@
 # -*- coding: utf8 -*-
+import os
 import re
 import json
-from os import path
 from functools import wraps
 from datetime import datetime, timedelta
 
 from fresco import Route, GET, POST, PUT, DELETE, Response, context
 
-from telega.common import DbManager, config
+from telega.common import DATE_FORMAT, DbManager, config
 from telega.tasks import GetEventsTask
 import telega.classifier as classifier
 
@@ -243,8 +243,8 @@ class ChannelsView(ViewHelper):
 
     def post(self):
         id = db.insert('Channels', context.request.get_json())
-        GetEventsTask.add_task(id) ## today
-        GetEventsTask.add_task(id) ## tomorrow
+        GetEventsTask.add_task(id)  # today
+        GetEventsTask.add_task(id)  # tomorrow
         return Response('ok')
 
     def put(self, id):
@@ -257,12 +257,11 @@ class ChannelsView(ViewHelper):
 
 
 class LogMonitoring(object):
-    log_files = ['/var/log/telega/worker.log', '/var/log/telega/worker.log.1']
-    time_file = '/var/lib/telega/.logmon.time'
-    time_format = '%Y-%m-%d %H:%M:%S'
-    re_logmsg = re.compile(
-        r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:[.,]\d+)?\s+\[[^\]]*\]\s+(\S+)\s'
-    )
+    time_file = '.logmon.time'
+    log_files = ['logs/worker.log', 'logs/worker.log.1']
+    re_logmsg = re.compile(r'({})\s+\d+\s+\[[^\]]*\]\s+(\S+)\s'.format(
+        re.sub(r'%.', r'\d{2}', re.sub(r'%Y', r'\d{4}', DATE_FORMAT))
+    ))
     __routes__ = [
         Route('/', GET, 'get'),
         Route('/', POST, 'post'),
@@ -272,26 +271,23 @@ class LogMonitoring(object):
     def get(self):
         found = 0
         last_known = None
-        if path.isfile(self.time_file):
+        if os.path.isfile(self.time_file):
             with open(self.time_file) as tf:
-                last_known = datetime.strptime(tf.read(), self.time_format)
+                last_known = datetime.strptime(tf.read(), DATE_FORMAT)
         for log in self.log_files:
-            if path.isfile(log):
+            if os.path.isfile(log):
                 with open(log) as lf:
                     for line in lf:
                         match = self.re_logmsg.match(line)
-                        if match and (
-                            match.group(2) == 'WARNING' or
-                            match.group(2) == 'ERROR'
-                        ):
-                            cur = datetime.strptime(match.group(1), self.time_format)
+                        if match and match.group(2) in  ('WARNING', 'ERROR'):
+                            cur = datetime.strptime(match.group(1), DATE_FORMAT)
                             if last_known is None or cur > last_known:
                                 found += 1
         return Response(str(found))
 
     def post(self):
         with open(self.time_file, 'w') as tf:
-            tf.write(datetime.now().strftime(self.time_format))
+            tf.write(datetime.now().strftime(DATE_FORMAT))
         return Response('ok')
 
 
