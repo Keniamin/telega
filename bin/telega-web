@@ -20,9 +20,8 @@ files_cache = {}
 
 
 def log_error(request, exc_info):
-    _, exc, traceback = exc_info
-    logging.warning('Exception occured: %s', exc)
-    logging.warning('%s', '\n'.join(traceback.format_tb(traceback)))
+    _, exc, tb = exc_info
+    logging.warning('Exception occured: %s\n%s', exc, ''.join(traceback.format_tb(tb)))
     return Response.internal_server_error()
 
 
